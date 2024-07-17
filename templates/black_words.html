@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <h3>黑词管理</h3>
+
+        <!-- Black word List -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th scope="col">序号</th>
+                        <th scope="col">关键词</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for word in data %}
+                        <tr>
+                            <td>{{ word.id }}</td>
+                            <td>{{ word.keyword }}</td>
+                            <td><a href="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"
+                                   class="btn btn-sm btn-danger">删除</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>添加新词</h5>
+                <span>【多个关键词用英文逗号(,)分隔】</span>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('api.black_keyword_add') }}">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="new-blackword" name="keyword_list"
+                               placeholder="请输入关键词" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">新增</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

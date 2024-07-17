@@ -17,6 +17,7 @@ class Application(Flask):
         config_file = os.path.abspath(os.path.join(JD_ROOT, '../config.py'))
         print(f'loading configuration:{config_file}')
         self.config.from_pyfile(config_file)
+        self.template_folder = os.path.abspath(os.path.join(JD_ROOT, '../templates'))
 
     def ready(self, db_switch=True, web_switch=True):
         if db_switch:

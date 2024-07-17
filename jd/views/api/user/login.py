@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, render_template
 from flask_jwt_extended import create_access_token
 
 from jd import db
@@ -7,10 +7,13 @@ from jd.views import APIException
 from jd.views.api import api
 
 
-@api.route("auth/login", need_login=False, methods=["GET", "POST"])
+@api.route("auth/login", need_login=False, methods=["POST", "GET"])
 def auth_login():
     """登录获取令牌"""
-    args = request.get_json()
+    # if request.method == "POST":
+    #     args = request.get_json()
+    # else:
+    args = request.form
     username = args.get("username")
     password = args.get("password")
 
@@ -22,6 +25,7 @@ def auth_login():
     #     return jsonify("Wrong password"), 401
     if user.password != password:
         raise APIException("账号或密码错误！")
-    access_token = create_access_token(
-        identity={"user_id": user.id, "username": user.username})
-    return jsonify(access_token=access_token)
+    # access_token = create_access_token(
+    #     identity={"user_id": user.id, "username": user.username})
+    # return jsonify(access_token=access_token)
+    return render_template("index.html")

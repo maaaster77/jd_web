@@ -1,17 +1,10 @@
-from flask import jsonify
+from flask import jsonify, render_template
 
+from jd import app
 from jd.helpers.user import current_user_id
 from jd.views.api import api
 
 
-@api.route('/index', methods=['GET'], need_login=True)
+@api.route('/index', methods=['GET', 'POST'], need_login=False)
 def index():
-    user_id = int(current_user_id)
-    return jsonify({'msg': {
-        'user_id': user_id
-    }})
-
-
-@api.route('/', need_login=False)
-def hello():
-    return jsonify({'msg':'hello, jd!'})
+    return render_template('login.html')
