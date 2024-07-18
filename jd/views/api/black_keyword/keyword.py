@@ -14,8 +14,14 @@ def black_keyword_list():
     """
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
-    page_size = get_or_exception('page_size', args, 'int', 50)
+    page_size = get_or_exception('page_size', args, 'int', 20)
     offset = (page - 1) * page_size
+    # 计算总记录数
+    total_records = db.session.query(BlackKeyword).filter(
+        BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).count()
+
+    # 计算总页数
+    total_pages = (total_records + page_size - 1) // page_size
     rows = (db.session.query(BlackKeyword).filter(BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).
             order_by(BlackKeyword.id.desc()).offset(offset).limit(page_size).all())
     data = [{
@@ -24,7 +30,8 @@ def black_keyword_list():
         'status': row.status,
         'created_at': row.created_at.strftime('%Y-%m-%d %H:%M:%S'),
     } for row in rows]
-    return render_template('black_words.html', data=data)
+
+    return render_template('black_words.html', data=data, total_pages=total_pages, current_page=page)
 
 
 @api.route('/black_keyword/add', methods=['POST'])
