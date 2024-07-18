@@ -45,15 +45,51 @@
                             <td>{{ word.keyword }}</td>
                             <td>{{ word.created_at }}</td>
                             <td>
-                                <form action="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"
-                                      method="POST">
-                                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                                </form>
+                            <td><a href="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"
+                                   class="btn btn-sm btn-danger">删除</a></td>
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+                <!-- Pagination -->
+                <!-- Pagination -->
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        {% if current_page > 1 %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for('api.black_keyword_list', page=current_page-1, page_size=page_size) }}"
+                                   tabindex="-1" aria-disabled="true">上一页</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in range(1, total_pages+1) %}
+                            {% if page == current_page %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link"
+                                                         href="{{ url_for('api.black_keyword_list', page=page, page_size=page_size) }}">{{ page }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if current_page < total_pages %}
+                            <li class="page-item">
+                                <a class="page-link" href="
+                                        {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">下一页</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
         </div>
 
