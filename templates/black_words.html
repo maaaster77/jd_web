@@ -8,15 +8,18 @@
         <div class="card">
             <div class="card-header">
                 添加新词
-                <small class="text-muted">【多个关键词用英文逗号(,)分隔】</small>
             </div>
             <div class="card-body">
                 <form method="post" action="{{ url_for('api.black_keyword_add') }}">
-                    <div class="mb-3">
-                        <label for="new-blackword" class="form-label">请输入关键词</label>
-                        <input type="text" class="form-control" id="new-blackword" name="keyword_list" required>
+                    <label for="new-blackword" class="form-label me-2">请输入关键词</label>
+                    <small class="text-muted">注意：【多个关键词用英文逗号(,)分隔】</small>
+
+                    <div class="mb-3 d-flex align-items-center flex-wrap">
+                        <div class="col-10"> <!-- 或者使用 col-md-6 对于中等屏幕以上 -->
+                            <input type="text" class="form-control" id="new-blackword" name="keyword_list" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary ms-auto">新增</button> <!-- 使用ms-auto将按钮推至右侧 -->
                     </div>
-                    <button type="submit" class="btn btn-primary">新增</button>
                 </form>
             </div>
         </div>
@@ -81,6 +84,10 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
+
+
+
+
                                         {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
