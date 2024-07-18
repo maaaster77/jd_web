@@ -18,6 +18,7 @@ class Application(Flask):
         print(f'loading configuration:{config_file}')
         self.config.from_pyfile(config_file)
         self.template_folder = os.path.abspath(os.path.join(JD_ROOT, '../templates'))
+        self.secret_key = self.config.get('SESSION_SECRET_KEY')
 
     def ready(self, db_switch=True, web_switch=True):
         if db_switch:

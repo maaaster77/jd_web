@@ -12,3 +12,5 @@ SQLALCHEMY_BINDS = {
 # jwt 配置
 JWT_SECRET_KEY = "hello!jd"
 JWT_ACCESS_TOKEN_EXPIRES = 7 * 24 * 60 * 60
+
+SESSION_SECRET_KEY = "hello!jd"
