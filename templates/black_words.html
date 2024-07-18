@@ -1,28 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
     <div class="container mt-5">
-        <h3>黑词管理</h3>
+        <h3 class="mb-4">黑词管理</h3>
+
+        <!-- Add new black word -->
+        <div class="card">
+            <div class="card-header">
+                添加新词
+                <small class="text-muted">【多个关键词用英文逗号(,)分隔】</small>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('api.black_keyword_add') }}">
+                    <div class="mb-3">
+                        <label for="new-blackword" class="form-label">请输入关键词</label>
+                        <input type="text" class="form-control" id="new-blackword" name="keyword_list" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">新增</button>
+                </form>
+            </div>
+        </div>
 
         <!-- Black word List -->
-        <div class="card mb-3">
+        <div class="card mb-3 mt-4">
+            <div class="card-header">
+                黑词列表
+            </div>
             <div class="card-body">
-                <table class="table table-striped">
+                <table class="table table-striped table-hover">
                     <thead>
                     <tr>
+                        <th scope="col"><input type="checkbox" id="select-all"></th>
                         <th scope="col">序号</th>
                         <th scope="col">关键词</th>
+                        <th scope="col">创建时间</th>
                         <th scope="col">操作</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for word in data %}
                         <tr>
+                            <td><input type="checkbox" name="selectedWords" value="{{ word.id }}"></td>
                             <td>{{ word.id }}</td>
                             <td>{{ word.keyword }}</td>
-                            <td><a href="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"
-                                   class="btn btn-sm btn-danger">删除</a></td>
+                            <td>{{ word.created_at }}</td>
+                            <td>
+                                <form action="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"
+                                      method="POST">
+                                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                                </form>
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -30,20 +57,17 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5>添加新词</h5>
-                <span>【多个关键词用英文逗号(,)分隔】</span>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{{ url_for('api.black_keyword_add') }}">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="new-blackword" name="keyword_list"
-                               placeholder="请输入关键词" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">新增</button>
-                </form>
-            </div>
-        </div>
+
     </div>
-{% endblock %}
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            $('#select-all').on('change', function () {
+                var isChecked = this.checked;
+                $('#select-all').closest('table').find('input[type="checkbox"]').prop('checked', isChecked);
+            });
+        });
+    </script>
+{% endblock script %}

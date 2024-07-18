@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, session
 from flask_jwt_extended import create_access_token
 
 from jd import db
@@ -10,9 +10,6 @@ from jd.views.api import api
 @api.route("auth/login", need_login=False, methods=["POST", "GET"])
 def auth_login():
     """登录获取令牌"""
-    # if request.method == "POST":
-    #     args = request.get_json()
-    # else:
     args = request.form
     username = args.get("username")
     password = args.get("password")
@@ -28,4 +25,5 @@ def auth_login():
     # access_token = create_access_token(
     #     identity={"user_id": user.id, "username": user.username})
     # return jsonify(access_token=access_token)
+    session['current_user_id'] = user.id
     return render_template("index.html")

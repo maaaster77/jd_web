@@ -6,7 +6,7 @@ from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
 
-@api.route('/black_keyword/list', methods=['GET'], need_login=False)
+@api.route('/black_keyword/list', methods=['GET'])
 def black_keyword_list():
     """
     黑词列表
@@ -16,8 +16,8 @@ def black_keyword_list():
     page = get_or_exception('page', args, 'int', 1)
     page_size = get_or_exception('page_size', args, 'int', 50)
     offset = (page - 1) * page_size
-    rows = db.session.query(BlackKeyword).filter(BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL). \
-        offset(offset).limit(page_size).all()
+    rows = (db.session.query(BlackKeyword).filter(BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).
+            order_by(BlackKeyword.id.desc()).offset(offset).limit(page_size).all())
     data = [{
         'id': row.id,
         'keyword': row.keyword,
@@ -27,7 +27,7 @@ def black_keyword_list():
     return render_template('black_words.html', data=data)
 
 
-@api.route('/black_keyword/add', need_login=False, methods=['POST'])
+@api.route('/black_keyword/add', methods=['POST'])
 def black_keyword_add():
     """
     添加黑词
@@ -44,7 +44,7 @@ def black_keyword_add():
     return redirect(url_for('api.black_keyword_list'))
 
 
-@api.route('/black_keyword/delete', methods=['GET'], need_login=False)
+@api.route('/black_keyword/delete', methods=['GET'])
 def black_keyword_delete():
     """
     删除黑词
