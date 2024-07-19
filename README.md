@@ -49,9 +49,13 @@ Python3.7+
 pip install -r requirements.txt
 ```
 
+### 运行celery
+```shell
+celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info
+```
+
 
 ### 运行web
-
 ```shell
 python web.py
 ```

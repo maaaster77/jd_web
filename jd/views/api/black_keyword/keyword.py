@@ -2,6 +2,8 @@ from flask import jsonify, request, render_template, redirect, url_for
 
 from jd import db
 from jd.models.black_keyword import BlackKeyword
+from jd.services.spider.search import SpiderSearchService
+from jd.tasks.first.spider_search import spider_search_baidu
 from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
@@ -46,7 +48,7 @@ def black_keyword_add():
     if not keyword_list:
         raise APIException('参数错误')
     for keyword in keyword_list:
-        black_keyword = BlackKeyword(keyword=keyword)
+        black_keyword = BlackKeyword(keyword=keyword.strip())
         db.session.add(black_keyword)
     return redirect(url_for('api.black_keyword_list'))
 
@@ -66,3 +68,14 @@ def black_keyword_delete():
                                           BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL). \
         update({'is_delete': BlackKeyword.DeleteType.DELETE})
     return redirect(url_for('api.black_keyword_list'))
+
+
+@api.route('/black_keyword/search', methods=['POST'])
+def black_keyword_search():
+    args = request.json
+    keyword_id_list = get_or_exception('keywords', args, 'str')
+    if not keyword_id_list:
+        return success({'success': 0})
+    spider_search_baidu.delay(keyword_id_list)
+
+    return success({'msg': '搜索中，请稍后！'})

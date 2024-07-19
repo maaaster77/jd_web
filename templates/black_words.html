@@ -28,6 +28,9 @@
         <div class="card mb-3 mt-4">
             <div class="card-header">
                 黑词列表
+                <small class="text-muted">【选择黑词进行搜索】</small>
+
+                <a href="#" class="btn btn-sm  btn-primary search_keyword">搜索</a>
             </div>
             <div class="card-body">
                 <table class="table table-striped table-hover">
@@ -55,7 +58,6 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                <!-- Pagination -->
                 <!-- Pagination -->
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-center">
@@ -88,6 +90,7 @@
 
 
 
+
                                         {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
@@ -112,5 +115,35 @@
                 $('#select-all').closest('table').find('input[type="checkbox"]').prop('checked', isChecked);
             });
         });
+        $(document).on('click', '.search_keyword', function (e) {
+            console.log('点击搜索')
+            e.preventDefault();
+            const selectedKeywords = [];
+
+            // 遍历所有的checkbox，收集被选中的关键词ID
+            $('input[name="selectedWords"]:checked').each(function () {
+                selectedKeywords.push($(this).val());
+            });
+            const keywords = selectedKeywords.join(',');
+            console.log('keyword:', keywords);
+
+            if (selectedKeywords) {
+                $.ajax({
+                    url: "{{ url_for('api.black_keyword_search') }}",
+                    type: "post",
+                    data: JSON.stringify({keywords: keywords}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        const msg = response.payload.msg;
+                        alert(msg);
+                    },
+                    error: function (error) {
+                        // 处理错误情况
+                        console.error("Error:", error);
+                    }
+                });
+            }
+        });
+
     </script>
 {% endblock script %}
