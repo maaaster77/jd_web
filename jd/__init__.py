@@ -5,6 +5,8 @@ from importlib import import_module
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
+from jCelery import celery
+
 db = SQLAlchemy()
 
 JD_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -20,11 +22,13 @@ class Application(Flask):
         self.template_folder = os.path.abspath(os.path.join(JD_ROOT, '../templates'))
         self.secret_key = self.config.get('SESSION_SECRET_KEY')
 
-    def ready(self, db_switch=True, web_switch=True):
+    def ready(self, db_switch=True, web_switch=True, worker_switch=True):
         if db_switch:
             db.init_app(self)
         if web_switch:
             self.prepare_blueprints()
+        if worker_switch:
+            self.prepare_celery()
 
     def prepare_blueprints(self):
         from jd import views
@@ -33,6 +37,20 @@ class Application(Flask):
         from jd.views.api import api
         prefix = self.config.get('API_PREFIX', '')
         self.register_blueprint(api, url_prefix=prefix)
+
+    def prepare_celery(self):
+        celery.conf.update(app.config)
+        self.register_celery()
+
+    def register_celery(self):
+        class ContextTask(celery.Task):
+            abstract = True
+
+            def __call__(self, *args, **kwargs):
+                with app.app_context():
+                    return self.run(*args, **kwargs)
+
+        celery.Task = ContextTask
 
     # def wsgi_app(self, environ, start_response):
     #     ctx = self.request_context(environ)
