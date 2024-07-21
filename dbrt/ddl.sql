@@ -84,3 +84,20 @@ CREATE TABLE `user_role`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8 comment '用户-角色';
 # END #####################################
+
+
+# 黑词结果
+CREATE TABLE `keyword_search` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `batch_id` varchar(64) NOT NULL DEFAULT '' COMMENT '批次id',
+  `search_type` int(11) NOT NULL DEFAULT '1' COMMENT '1-baidu 2-google',
+  `keyword` varchar(80) NOT NULL DEFAULT '' COMMENT '黑词',
+  `result` text COMMENT '黑词搜索结果',
+  `page` int(11) NOT NULL DEFAULT '1' COMMENT '页数',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '状态 0-待处理 1-处理中 2-已处理',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `udx_keyword` (`keyword`),
+  KEY `udx_batch_id` (`batch_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索结果'

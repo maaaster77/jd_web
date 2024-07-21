@@ -29,6 +29,16 @@
             <div class="card-header">
                 黑词列表
                 <small class="text-muted">【选择黑词进行搜索】</small>
+                <div class="form-check form-check-inline ml-3">
+                    <input class="form-check-input" type="radio" name="searchEngine" id="searchEngineBaidu"
+                           value="1" checked>
+                    <label class="form-check-label" for="searchEngineBaidu">百度</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="searchEngine" id="searchEngineGoogle"
+                           value="2">
+                    <label class="form-check-label" for="searchEngineGoogle">谷歌</label>
+                </div>
 
                 <a href="#" class="btn btn-sm  btn-primary search_keyword">搜索</a>
             </div>
@@ -91,6 +101,10 @@
 
 
 
+
+
+
+
                                         {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
@@ -119,19 +133,28 @@
             console.log('点击搜索')
             e.preventDefault();
             const selectedKeywords = [];
-
             // 遍历所有的checkbox，收集被选中的关键词ID
             $('input[name="selectedWords"]:checked').each(function () {
                 selectedKeywords.push($(this).val());
             });
             const keywords = selectedKeywords.join(',');
             console.log('keyword:', keywords);
+            if (!keywords) {
+                alert('请选择关键词');
+                return;
+            }
+            const search_type = $('input[name="searchEngine"]:checked').val();
+            if (!search_type) {
+                alert('请选择搜索引擎');
+                return;
+            }
+            console.log('search_type:', search_type);
 
             if (selectedKeywords) {
                 $.ajax({
                     url: "{{ url_for('api.black_keyword_search') }}",
                     type: "post",
-                    data: JSON.stringify({keywords: keywords}),
+                    data: JSON.stringify({keywords: keywords, search_type: search_type}),
                     contentType: "application/json; charset=utf-8",
                     success: function (response) {
                         const msg = response.payload.msg;

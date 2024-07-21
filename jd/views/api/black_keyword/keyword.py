@@ -2,6 +2,7 @@ from flask import jsonify, request, render_template, redirect, url_for
 
 from jd import db
 from jd.models.black_keyword import BlackKeyword
+from jd.models.keyword_search import KeywordSearch
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import spider_search_baidu
 from jd.views import get_or_exception, APIException, success
@@ -74,8 +75,9 @@ def black_keyword_delete():
 def black_keyword_search():
     args = request.json
     keyword_id_list = get_or_exception('keywords', args, 'str')
-    if not keyword_id_list:
-        return success({'success': 0})
-    spider_search_baidu.delay(keyword_id_list)
+    search_type = get_or_exception('search_type', args, 'int', default=1)
+    if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE]:
+        raise APIException('搜索类型错误')
+    spider_search_baidu.delay(keyword_id_list, search_type)
 
     return success({'msg': '搜索中，请稍后！'})
