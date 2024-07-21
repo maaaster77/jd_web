@@ -32,11 +32,6 @@ class ApiBlueprint(Blueprint):
                 if need_login and not current_user_id:
                     raise APIException('未登录', 40101, 401)
 
-                    # current_perm_ids = []
-                    # if perm_ids != [] and not pytest_enable:
-                    #     if perm_ids is None:
-                    #         raise APIException('权限不足', 40301, 403)
-                    #
                 if roles:
                     role_ids = [ROLE_MAP.get(role, 0) for role in roles]
                     user_role = db.session.query(UserRole).filter(UserRole.user_id == current_user_id,
