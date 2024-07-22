@@ -102,7 +102,7 @@ def black_keyword_search_result():
         KeywordSearchParseResultTag.parse_id.in_(parse_id_list)).all()
     parse_tag_result = collections.defaultdict(list)
     for p in parse_tag_list:
-        parse_tag_result[p.parse_id].append(p.tag_id)
+        parse_tag_result[p.parse_id].append(str(p.tag_id))
 
     tag_list = [
         {
@@ -132,7 +132,7 @@ def black_keyword_search_result():
     data = []
     for row in parse_result:
         parse_tag = parse_tag_result.get(row.id, [])
-        tag_text = ','.join([tag_dict[t] for t in parse_tag])
+        tag_text = ','.join([tag_dict[int(t)] for t in parse_tag])
         data.append({
             'id': row.id,
             'keyword': row.keyword,
@@ -140,8 +140,24 @@ def black_keyword_search_result():
             'desc': row.desc,
             'account': row.account,
             'tag': tag_text,
-            'tag_id_list': parse_tag
+            'tag_id_list': ','.join(parse_tag) if parse_tag else ''
         })
 
     return render_template('search_result.html', data=data, total_pages=total_pages, current_page=page,
                            tag_list=tag_list)
+
+
+@api.route('/black_keyword/result/tag/update', methods=['POST'])
+def black_keyword_search_result_tag_update():
+    args = request.json
+    parse_id = get_or_exception('parse_id', args, 'int')
+    tag_id_list = get_or_exception('tag_id_list', args, 'str', '')
+    if tag_id_list:
+        tag_id_list = tag_id_list.split(',')
+        tag_id_list = [int(t) for t in tag_id_list]
+    KeywordSearchParseResultTag.query.filter(KeywordSearchParseResultTag.parse_id == parse_id).delete()
+    for tag_id in tag_id_list:
+        obj = KeywordSearchParseResultTag(parse_id=parse_id, tag_id=tag_id)
+        db.session.add(obj)
+    db.session.commit()
+    return success()

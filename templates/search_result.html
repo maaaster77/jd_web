@@ -70,7 +70,8 @@
                             <td>{{ word.tag }}</td>
                             <td>
                                 <a href="#" class="btn btn-sm  btn-primary edit-tag"
-                                   data-parse-id="{{ word.id }}" data-bs-toggle="modal"
+                                   data-parse-id="{{ word.id }}" data-parse-tag="{{ word.tag_id_list }}"
+                                   data-bs-toggle="modal"
                                    data-bs-target="#editRoleModal">编辑</a>
                                 {#                                    <a href="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"#}
                                 {#                                       class="btn btn-sm btn-danger">删除</a>#}
@@ -108,6 +109,12 @@
                             <li class="page-item">
                                 <a class="page-link" href="
 
+
+
+
+
+
+
                                         {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
@@ -131,8 +138,11 @@
                             <!-- Form to select tags -->
                             <form id="editRoleForm">
                                 <div class="mb-3">
+                                    <input type="text" style="display: none;"  class="form-control" id="edit_parse_id" name="edit_parse_id"
+                                           disabled="true" readonly>
                                     <label for="tagSelect" class="form-label">选择标签</label>
-                                    <select class="selectpicker" multiple id="tagSelect" data-live-search="true">
+                                    <select class="selectpicker" multiple id="tagSelect" data-live-search="true"
+                                            title="请选择">
                                         {% for tag in tag_list %}
                                             <option value={{ tag.id }}>{{ tag.name }}</option>
                                         {% endfor %}
@@ -202,27 +212,40 @@
 
         $('.edit-tag').on('click', function () {
             // Fetch user data and populate modal form
+            var selectedTags = $(this).data('parse-tag');
+            var tag_list = []
+            if (selectedTags.length > 1) {
+                tag_list = selectedTags.split(',');
+            } else {
+                tag_list = [selectedTags.toString()]
+            }
+            $('#tagSelect').selectpicker('val', tag_list);
+            const parse_id = $(this).data('parse-id');
+            $('#edit_parse_id').val(parse_id);
             $('#editRoleModal').modal('show');
         });
 
         $('#saveTagChanges').on('click', function () {
-            var selectedTags = $('#tagSelect').val();
-            var parse_id = $('.edit-tag').data('parse-id');
+            var $tagSelect = $('#tagSelect');
+            var selectedTags = $tagSelect.val();
+            var parse_id = $('#edit_parse_id').val();
+            console.log('parse id:', parse_id)
             console.log('select tags:', selectedTags)
-            $('#tagSelect').empty();
-            selectedTags = $('#tagSelect').val();
-            console.log('clear select:', selectedTags)
-            $('#editRoleModal').modal('hide');
+            $('.selectpicker').selectpicker('val', ['noneSelectedText']);
+            $('.selectpicker').selectpicker('refresh');
+
             // Update user tags on server
-            //$.ajax({
-            //    type: 'POST',
-            //    url: '/api/user/' + userId + '/tags',
-            //    data: {tags: selectedTags.join(',')}, // Convert array back to comma-separated string
-            //  success: function (response) {
-            //       alert('标签已更新');
-            //       $('#editRoleModal').modal('hide');
-            //    }
-            //});
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("api.black_keyword_search_result_tag_update") }}',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({parse_id: parse_id, tag_id_list: selectedTags.join(',')}), // Convert array back to comma-separated string
+                success: function (response) {
+                    $('#editRoleModal').modal('hide');
+                    location.reload(false);
+
+                }
+            });
         });
 
     </script>
