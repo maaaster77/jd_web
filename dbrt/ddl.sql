@@ -17,7 +17,7 @@ CREATE TABLE `black_keyword`
     `id`         int          NOT NULL AUTO_INCREMENT,
     `keyword`    varchar(126) not null default '' comment '关键词',
     `status`     int          not null default 0 comment '状态',
-    `id_delete`  int          not null default 0 comment '0-正常 1-已删除',
+    `is_delete`  int          not null default 0 comment '0-正常 1-已删除',
     `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
@@ -100,4 +100,27 @@ CREATE TABLE `keyword_search` (
   PRIMARY KEY (`id`),
   KEY `udx_keyword` (`keyword`),
   KEY `udx_batch_id` (`batch_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索结果'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索结果';
+
+
+CREATE TABLE `keyword_search_parse_result` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `keyword` varchar(80) NOT NULL DEFAULT '' COMMENT '黑词',
+  `url` varchar(1024) not null default '' comment 'url',
+  `account` varchar(1024) not null default '' comment '账户内容相关',
+  `desc` varchar(1024) not null default '' comment '描述',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_keyword` (`keyword`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索结果解析';
+
+CREATE TABLE `keyword_search_parse_result_tag` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parse_id` int not null default 0 comment 'keyword_search_parse_result.id',
+  `tag_id` int not null default 0 comment '标签id',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_parse_tag` (`parse_id`, `tag_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词解析结果-标签';
