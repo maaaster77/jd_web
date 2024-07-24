@@ -89,11 +89,24 @@ def black_keyword_search():
 
 @api.route('/black_keyword/result', methods=['GET'])
 def black_keyword_search_result():
-    args = request.args
+    args = request.args or request.form
     page = get_or_exception('page', args, 'int', 1)
     page_size = get_or_exception('page_size', args, 'int', 20)
-
-    query = KeywordSearchParseResult.query.filter()
+    search_keyword = get_or_exception('search_keyword', args, 'str', '')
+    search_tag = get_or_exception('search_tag', args, 'int', 0)
+    default_tag_id = 0
+    parse_id_list = []
+    if search_tag > 0:
+        default_tag_id = search_tag
+        parse_tag_list = KeywordSearchParseResultTag.query.filter(
+            KeywordSearchParseResultTag.tag_id == search_tag).all()
+        parse_id_list = [p.parse_id for p in parse_tag_list]
+    query = KeywordSearchParseResult.query.filter(
+        KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)
+    if search_keyword:
+        query = query.filter(KeywordSearchParseResult.keyword.like(f'%{search_keyword}%'))
+    if parse_id_list:
+        query = query.filter(KeywordSearchParseResult.id.in_(parse_id_list))
     total_records = query.count()
     parse_result = query.order_by(KeywordSearchParseResult.id.desc()).offset((page - 1) * page_size).limit(
         page_size).all()
@@ -144,7 +157,8 @@ def black_keyword_search_result():
         })
 
     return render_template('search_result.html', data=data, total_pages=total_pages, current_page=page,
-                           tag_list=tag_list)
+                           tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
+                           default_tag_id=default_tag_id)
 
 
 @api.route('/black_keyword/result/tag/update', methods=['POST'])
@@ -161,3 +175,34 @@ def black_keyword_search_result_tag_update():
         db.session.add(obj)
     db.session.commit()
     return success()
+
+
+@api.route('/black_keyword/result/delete')
+def black_keyword_search_result_delete():
+    args = request.args
+    parse_id = get_or_exception('parse_id', args, 'int')
+    KeywordSearchParseResult.query.filter(KeywordSearchParseResult.id == parse_id).update(
+        {'is_delete': KeywordSearchParseResult.DeleteType.DELETE})
+    return redirect(url_for('api.black_keyword_search_result'))
+
+
+@api.route('/black_keyword/result/add', methods=['POST'])
+def black_keyword_search_result_add():
+    args = request.json
+    keyword = get_or_exception('keyword', args, 'str')
+    url = get_or_exception('url', args, 'str')
+    account = get_or_exception('account', args, 'str')
+    desc = get_or_exception('desc', args, 'str')
+    tag_id_list = get_or_exception('tag_id_list', args, 'str', '')
+    if tag_id_list:
+        tag_id_list = tag_id_list.split(',')
+
+    result = KeywordSearchParseResult(keyword=keyword, url=url, account=account, desc=desc)
+    db.session.add(result)
+    db.session.flush()
+    for tag_id in tag_id_list:
+        obj = KeywordSearchParseResultTag(parse_id=result.id, tag_id=tag_id)
+        db.session.add(obj)
+
+    return success()
+
