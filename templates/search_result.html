@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
 
 {% block style %}
-    <style>
-
-    </style>
 
 {% endblock style %}
 <style>
@@ -39,6 +36,44 @@
     <div class="container mt-5">
         <h3 class="mb-4">搜索结果</h3>
 
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('api.black_keyword_search_result') }}" class="mx-auto">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="search_keyword" class="me-2" style="width: 100px;">关键词:</label>
+                            <input type="text" class="form-control" id="search_keyword" name="search_keyword"
+                                   value="{{ search_keyword }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="search_tag" class="me-2">标签:</label>
+                            <select class="form-select" style="width: calc(100% - 100px);" id="search_tag"
+                                    name="search_tag">
+                                <option value="0">全部</option>
+                                {% for tag in tag_list %}
+                                    <option value="{{ tag.id }}" {% if tag.id == default_tag_id %}selected{% endif %}>
+                                        {{ tag.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <button type="submit" class="btn btn-sm  btn-primary">查询</button>
+                        <a href="{{ url_for('api.black_keyword_search_result') }}" class="btn btn-sm btn-success"
+                           style="margin-left: 10px">重置</a>
+                        <a href="" class="btn btn-sm btn-secondary add_parse_result"
+                           data-bs-toggle="modal"
+                           data-bs-target="#addResultModal"
+                           style="margin-left: 10px">新增结果</a>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+
 
         <div class="card mb-3 mt-4">
             <div class="card-header">
@@ -73,8 +108,8 @@
                                    data-parse-id="{{ word.id }}" data-parse-tag="{{ word.tag_id_list }}"
                                    data-bs-toggle="modal"
                                    data-bs-target="#editRoleModal">编辑</a>
-                                {#                                    <a href="{{ url_for('api.black_keyword_delete', keyword_id=word.id) }}"#}
-                                {#                                       class="btn btn-sm btn-danger">删除</a>#}
+                                <a href="{{ url_for('api.black_keyword_search_result_delete', parse_id=word.id) }}"
+                                   class="btn btn-sm btn-danger">删除</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -86,7 +121,7 @@
                         {% if current_page > 1 %}
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="{{ url_for('api.black_keyword_list', page=current_page-1, page_size=page_size) }}"
+                                   href="{{ url_for('api.black_keyword_search_result', page=current_page-1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}"
                                    tabindex="-1" aria-disabled="true">上一页</a>
                             </li>
                         {% else %}
@@ -100,7 +135,7 @@
                                 <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
                             {% else %}
                                 <li class="page-item"><a class="page-link"
-                                                         href="{{ url_for('api.black_keyword_list', page=page, page_size=page_size) }}">{{ page }}</a>
+                                                         href="{{ url_for('api.black_keyword_search_result', page=page, page_size=page_size,search_keyword=search_keyword, search_tag=search_tag) }}">{{ page }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -111,11 +146,7 @@
 
 
 
-
-
-
-
-                                        {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
+                                        {{ url_for('api.black_keyword_search_result', page=current_page+1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}">下一页</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled">
@@ -125,7 +156,7 @@
                     </ul>
                 </nav>
             </div>
-            <!-- Edit Role Modal -->
+            <!-- Edit Tag Modal -->
             <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel"
                  aria-hidden="true">
                 <div class="modal-dialog">
@@ -138,7 +169,8 @@
                             <!-- Form to select tags -->
                             <form id="editRoleForm">
                                 <div class="mb-3">
-                                    <input type="text" style="display: none;"  class="form-control" id="edit_parse_id" name="edit_parse_id"
+                                    <input type="text" style="display: none;" class="form-control" id="edit_parse_id"
+                                           name="edit_parse_id"
                                            disabled="true" readonly>
                                     <label for="tagSelect" class="form-label">选择标签</label>
                                     <select class="selectpicker" multiple id="tagSelect" data-live-search="true"
@@ -157,6 +189,53 @@
                     </div>
                 </div>
             </div>
+            <!-- Add Result Modal -->
+            <div class="modal fade" id="addResultModal" tabindex="-1" aria-labelledby="addResultModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addResultModalLabel">新增结果</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Form to add new result -->
+                            <form id="addResultForm">
+                                <div class="mb-3">
+                                    <label for="addKeyword" class="form-label">关键词</label>
+                                    <input type="text" class="form-control" id="addKeyword" placeholder="输入关键词">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="addUrl" class="form-label">URL</label>
+                                    <input type="text" class="form-control" id="addUrl" placeholder="输入URL">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="addAccount" class="form-label">ACCOUNT</label>
+                                    <input type="text" class="form-control" id="addAccount" placeholder="输入ACCOUNT">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="addDesc" class="form-label">描述</label>
+                                    <textarea class="form-control" id="addDesc" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="addTagSelect" class="form-label">选择标签</label>
+                                    <select class="selectpicker" multiple id="addResultTagSelect"
+                                            data-live-search="true" title="请选择">
+                                        {% for tag in tag_list %}
+                                            <option value={{ tag.id }}>{{ tag.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="addResult">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
 
@@ -244,6 +323,48 @@
                     $('#editRoleModal').modal('hide');
                     location.reload(false);
 
+                }
+            });
+        });
+
+        // Show the add result modal when the button is clicked
+        $('.add_parse_result').on('click', function () {
+            $('#addResultTagSelect').selectpicker('val', ['noneSelectedText']);
+            $('#addResultModal').modal('show');
+        });
+
+        $('#addResult').on('click', function () {
+            console.log('新增保存');
+            var keyword = $('#addKeyword').val();
+            var url = $('#addUrl').val();
+            var account = $('#addAccount').val();
+            var desc = $('#addDesc').val();
+            var selectedTags = $('#addResultTagSelect').val();
+            console.log('selectedTags:', selectedTags);
+
+            if (!keyword && (!url || !account)) {
+                alert('请填写关键词、url或account为！');
+                return;
+            }
+
+            // Send a request to the server to add the new result
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("api.black_keyword_search_result_add") }}', // Make sure this URL is correct
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    keyword: keyword,
+                    url: url,
+                    account: account,
+                    desc: desc,
+                    tag_id_list: selectedTags.join(',')
+                }),
+                success: function (response) {
+                    $('#addResultModal').modal('hide');
+                    location.reload(false); // Refresh the page after adding the result
+                },
+                error: function (error) {
+                    console.error("Error:", error);
                 }
             });
         });

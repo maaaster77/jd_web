@@ -124,3 +124,5 @@ CREATE TABLE `keyword_search_parse_result_tag` (
   PRIMARY KEY (`id`),
   KEY `idx_parse_tag` (`parse_id`, `tag_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词解析结果-标签';
+
+alter table keyword_search_parse_result add `is_delete` int not null default 0 comment '0-未删除 1-已删除' after `desc`;
