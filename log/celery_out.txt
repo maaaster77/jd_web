@@ -1,0 +1,26 @@
+loading configuration:/Users/barryh/pythonStudy/jd_web/config.py
+loading task: jd.tasks.first
+loading task: jd.tasks.first.spider_search
+ 
+ -------------- celery@MacBook-Pro-3.local v5.2.7 (dawn-chorus)
+--- ***** ----- 
+-- ******* ---- Darwin-23.5.0-x86_64-i386-64bit 2024-07-25 17:11:26
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         jd:0x7fa23862c790
+- ** ---------- .> transport:   redis://127.0.0.1:6379/0
+- ** ---------- .> results:     redis://127.0.0.1:6379/1
+- *** --- * --- .> concurrency: 8 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> jd.celery.first  exchange=jd.celery.first(direct) key=jd.celery.first
+                
+
+[tasks]
+  . jd.tasks.first.spider_search.deal_spider_search
+
+[2024-07-25 17:11:26,964: INFO/MainProcess] Connected to redis://127.0.0.1:6379/0
+[2024-07-25 17:11:26,981: INFO/MainProcess] mingle: searching for neighbors
+[2024-07-25 17:11:27,990: INFO/MainProcess] mingle: all alone
+[2024-07-25 17:11:28,000: INFO/MainProcess] celery@MacBook-Pro-3.local ready.
