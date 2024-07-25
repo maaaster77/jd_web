@@ -1,0 +1,22 @@
+[I 240725 13:11:17 command:171] Visit me at http://0.0.0.0:5555
+[I 240725 13:11:17 command:176] Broker: redis://127.0.0.1:6379/0
+[I 240725 13:11:17 command:179] Registered tasks: 
+    ['celery.accumulate',
+     'celery.backend_cleanup',
+     'celery.chain',
+     'celery.chord',
+     'celery.chord_unlock',
+     'celery.chunks',
+     'celery.group',
+     'celery.map',
+     'celery.starmap',
+     'jd.tasks.first.spider_search.spider_search_baidu']
+[I 240725 13:11:17 mixins:225] Connected to redis://127.0.0.1:6379/0
+[W 240725 13:11:18 inspector:44] Inspect method revoked failed
+[W 240725 13:11:18 inspector:44] Inspect method active_queues failed
+[W 240725 13:11:18 inspector:44] Inspect method active failed
+[W 240725 13:11:18 inspector:44] Inspect method registered failed
+[W 240725 13:11:18 inspector:44] Inspect method reserved failed
+[W 240725 13:11:18 inspector:44] Inspect method stats failed
+[W 240725 13:11:18 inspector:44] Inspect method conf failed
+[W 240725 13:11:18 inspector:44] Inspect method scheduled failed

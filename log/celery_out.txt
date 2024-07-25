@@ -1,0 +1,27 @@
+loading configuration:/Users/barryh/pythonStudy/jd_web/config.py
+loading task: jd.tasks.first
+loading task: jd.tasks.first.spider_search
+ 
+ -------------- celery@MacBook-Pro-3.local v5.2.7 (dawn-chorus)
+--- ***** ----- 
+-- ******* ---- Darwin-23.5.0-x86_64-i386-64bit 2024-07-25 13:11:17
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         jd:0x7fb8f013d7d0
+- ** ---------- .> transport:   redis://127.0.0.1:6379/0
+- ** ---------- .> results:     redis://127.0.0.1:6379/1
+- *** --- * --- .> concurrency: 8 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> jd.celery.first  exchange=jd.celery.first(direct) key=jd.celery.first
+                
+
+[tasks]
+  . jd.tasks.first.spider_search.spider_search_baidu
+
+[2024-07-25 13:11:17,651: INFO/MainProcess] Connected to redis://127.0.0.1:6379/0
+[2024-07-25 13:11:17,654: INFO/MainProcess] mingle: searching for neighbors
+[2024-07-25 13:11:18,682: INFO/MainProcess] mingle: all alone
+[2024-07-25 13:11:18,712: INFO/MainProcess] celery@MacBook-Pro-3.local ready.
+[2024-07-25 13:11:22,039: INFO/MainProcess] Events of group {task} enabled by remote.
