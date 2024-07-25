@@ -130,7 +130,7 @@ def black_keyword_search_result():
         for tag in parse_tag_list:
             group_result[tag.parse_id].append(tag.tag_id)
         for p_id, t_list in group_result.items():
-            if len(t_list) == len(search_tag):
+            if set(t_list) == set(search_tag):
                 parse_id_list.append(p_id)
         if not parse_id_list:
             return render_template('search_result.html', data=[], total_pages=1, current_page=page,
