@@ -89,34 +89,6 @@ def black_keyword_search():
 
 @api.route('/black_keyword/result', methods=['GET'])
 def black_keyword_search_result():
-    args = request.args or request.form
-    page = get_or_exception('page', args, 'int', 1)
-    page_size = get_or_exception('page_size', args, 'int', 20)
-    search_keyword = get_or_exception('search_keyword', args, 'str', '')
-    search_tag = get_or_exception('search_tag', args, 'int', 0)
-    default_tag_id = 0
-    parse_id_list = []
-    if search_tag > 0:
-        default_tag_id = search_tag
-        parse_tag_list = KeywordSearchParseResultTag.query.filter(
-            KeywordSearchParseResultTag.tag_id == search_tag).all()
-        parse_id_list = [p.parse_id for p in parse_tag_list]
-    query = KeywordSearchParseResult.query.filter(
-        KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)
-    if search_keyword:
-        query = query.filter(KeywordSearchParseResult.keyword.like(f'%{search_keyword}%'))
-    if parse_id_list:
-        query = query.filter(KeywordSearchParseResult.id.in_(parse_id_list))
-    total_records = query.count()
-    parse_result = query.order_by(KeywordSearchParseResult.id.desc()).offset((page - 1) * page_size).limit(
-        page_size).all()
-    parse_id_list = [row.id for row in parse_result]
-    parse_tag_list = KeywordSearchParseResultTag.query.filter(
-        KeywordSearchParseResultTag.parse_id.in_(parse_id_list)).all()
-    parse_tag_result = collections.defaultdict(list)
-    for p in parse_tag_list:
-        parse_tag_result[p.parse_id].append(str(p.tag_id))
-
     tag_list = [
         {
             'id': 1,
@@ -139,6 +111,48 @@ def black_keyword_search_result():
             'name': '毒品',
         },
     ]
+    args = request.args or request.form
+    page = get_or_exception('page', args, 'int', 1)
+    page_size = get_or_exception('page_size', args, 'int', 20)
+    search_keyword = get_or_exception('search_keyword', args, 'str', '')
+    search_tag = args.getlist('search_tag', int)
+    default_tag_id_list = []
+    parse_id_list = []
+    if search_tag:
+        # 标签是与关系
+        default_tag_id_list = search_tag
+        parse_tag_list = KeywordSearchParseResultTag.query.filter(
+            KeywordSearchParseResultTag.tag_id.in_(search_tag)).all()
+        result_p_id_list = [t.parse_id for t in parse_tag_list]
+        parse_tag_list = KeywordSearchParseResultTag.query.filter(
+            KeywordSearchParseResultTag.parse_id.in_(result_p_id_list)).all()
+        group_result = collections.defaultdict(list)
+        for tag in parse_tag_list:
+            group_result[tag.parse_id].append(tag.tag_id)
+        for p_id, t_list in group_result.items():
+            if len(t_list) == len(search_tag):
+                parse_id_list.append(p_id)
+        if not parse_id_list:
+            return render_template('search_result.html', data=[], total_pages=1, current_page=page,
+                                   tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
+                                   default_tag_id_list=default_tag_id_list)
+
+    query = KeywordSearchParseResult.query.filter(
+        KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)
+    if search_keyword:
+        query = query.filter(KeywordSearchParseResult.keyword.like(f'%{search_keyword}%'))
+    if parse_id_list:
+        query = query.filter(KeywordSearchParseResult.id.in_(parse_id_list))
+    total_records = query.count()
+    parse_result = query.order_by(KeywordSearchParseResult.id.desc()).offset((page - 1) * page_size).limit(
+        page_size).all()
+    parse_id_list = [row.id for row in parse_result]
+    parse_tag_list = KeywordSearchParseResultTag.query.filter(
+        KeywordSearchParseResultTag.parse_id.in_(parse_id_list)).all()
+    parse_tag_result = collections.defaultdict(list)
+    for p in parse_tag_list:
+        parse_tag_result[p.parse_id].append(str(p.tag_id))
+
     tag_dict = {t['id']: t['name'] for t in tag_list}
 
     total_pages = (total_records + page_size - 1) // page_size
@@ -158,7 +172,7 @@ def black_keyword_search_result():
 
     return render_template('search_result.html', data=data, total_pages=total_pages, current_page=page,
                            tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
-                           default_tag_id=default_tag_id)
+                           default_tag_id_list=default_tag_id_list)
 
 
 @api.route('/black_keyword/result/tag/update', methods=['POST'])
@@ -205,4 +219,3 @@ def black_keyword_search_result_add():
         db.session.add(obj)
 
     return success()
-

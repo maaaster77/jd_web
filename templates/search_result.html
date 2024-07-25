@@ -49,11 +49,10 @@
                     <div class="col-md-4">
                         <div class="form-group d-flex align-items-center">
                             <label for="search_tag" class="me-2">标签:</label>
-                            <select class="form-select" style="width: calc(100% - 100px);" id="search_tag"
-                                    name="search_tag">
-                                <option value="0">全部</option>
+                            <select class="selectpicker" multiple id="search_tag" name="search_tag"
+                                    data-live-search="true" title="请选择">
                                 {% for tag in tag_list %}
-                                    <option value="{{ tag.id }}" {% if tag.id == default_tag_id %}selected{% endif %}>
+                                    <option value="{{ tag.id }}" {% if tag.id in default_tag_id_list %}selected{% endif %}>
                                         {{ tag.name }}
                                     </option>
                                 {% endfor %}
@@ -143,6 +142,13 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
+
+
+
+
+
+
+
 
 
 
