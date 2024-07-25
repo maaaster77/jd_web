@@ -7,8 +7,9 @@ from jd.models.black_keyword import BlackKeyword
 from jd.models.keyword_search import KeywordSearch
 from jd.models.keyword_search_parse_result import KeywordSearchParseResult
 from jd.models.keyword_search_parse_result_tag import KeywordSearchParseResultTag
+from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.services.spider.search import SpiderSearchService
-from jd.tasks.first.spider_search import spider_search_baidu
+from jd.tasks.first.spider_search import deal_spider_search
 from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
@@ -82,7 +83,16 @@ def black_keyword_search():
     search_type = get_or_exception('search_type', args, 'int', default=1)
     if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE]:
         raise APIException('搜索类型错误')
-    spider_search_baidu.delay(keyword_id_list, search_type)
+    keyword_id_list = [int(k) for k in keyword_id_list.split(',')]
+    keyword_list = db.session.query(BlackKeyword).filter(BlackKeyword.id.in_(keyword_id_list),
+                                                         BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).all()
+
+    for k in keyword_list:
+        batch_id = SpiderSearchService.generate_batch_id()
+        obj = KeywordSearchQueue(batch_id=batch_id, keyword=k.keyword, search_type=search_type)
+        db.session.add(obj)
+        db.session.commit()
+        deal_spider_search.delay(batch_id, search_type)
 
     return success({'msg': '搜索中，请稍后！'})
 
@@ -219,3 +229,25 @@ def black_keyword_search_result_add():
         db.session.add(obj)
 
     return success()
+
+
+@api.route('/black_keyword/queue/list')
+def black_keyword_search_queue_list():
+    queues = KeywordSearchQueue.query.filter().order_by(KeywordSearchQueue.id.desc()).limit(100).all()
+    batch_id_list = list({row.batch_id for row in queues})
+    search_list = KeywordSearch.query.filter(KeywordSearch.batch_id.in_(batch_id_list)).all()
+    data = []
+    for q in queues:
+        search_data = KeywordSearch.query.filter_by(batch_id=q.batch_id, keyword=q.keyword).order_by(
+            KeywordSearch.id.desc()).first()
+        data.append({
+            'id': q.id,
+            'batch_id': q.batch_id,
+            'keyword': q.keyword,
+            'page': q.page,
+            'search_engine': SpiderSearchService.SEARCH_ENGINE_MAP[q.search_type],
+            'status': SpiderSearchService.QUEUE_STATUS_MAP[q.status],
+            'now_page': search_data.page if search_data else 0,
+            'created_at': q.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+    return render_template('search_queue.html', data=data, total_pages=1, current_page=1)

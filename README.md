@@ -49,6 +49,17 @@ Python3.7+
 pip install -r requirements.txt
 ```
 
+### 一键启动
+```shell
+bash start.sh
+```
+
+### 一键关闭
+```shell
+bash stop.sh
+
+```
+
 ### 运行celery
 ```shell
 celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info

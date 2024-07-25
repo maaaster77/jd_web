@@ -3,11 +3,22 @@ import time
 from jd import db
 from jd.models.black_keyword import BlackKeyword
 from jd.models.keyword_search import KeywordSearch
+from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.services.spider.baidu_spider import BaiduSpider
 from jd.services.spider.google_spider import GoogleSpider
 
 
 class SpiderSearchService:
+    QUEUE_STATUS_MAP = {
+        KeywordSearchQueue.StatusType.PENDING: '待处理',
+        KeywordSearchQueue.StatusType.PROCESSING: '处理中',
+        KeywordSearchQueue.StatusType.PROCESSED: '已处理'
+    }
+
+    SEARCH_ENGINE_MAP = {
+        KeywordSearchQueue.SearchType.BAIDU: '百度',
+        KeywordSearchQueue.SearchType.GOOGLE: '谷歌'
+    }
 
     @classmethod
     def spider_engine(cls, search_type):

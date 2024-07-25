@@ -126,3 +126,17 @@ CREATE TABLE `keyword_search_parse_result_tag` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词解析结果-标签';
 
 alter table keyword_search_parse_result add `is_delete` int not null default 0 comment '0-未删除 1-已删除' after `desc`;
+
+
+CREATE TABLE `keyword_search_queue` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `batch_id` varchar(64) NOT NULL DEFAULT '' COMMENT '批次id',
+  `search_type` int(11) NOT NULL DEFAULT '1' COMMENT '1-baidu 2-google',
+  `keyword` varchar(80) NOT NULL DEFAULT '' COMMENT '黑词',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '状态 0-待处理 1-处理中 2-已处理',
+  `page` int(11) NOT NULL DEFAULT '10' COMMENT '所需页码',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_batch_id` (`batch_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索队列'
