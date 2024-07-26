@@ -5,8 +5,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from jd import app
-
-
 class BaiduSpider:
 
     def __init__(self):
@@ -60,6 +58,7 @@ class BaiduSpider:
             try:
                 r = requests.get(self._url, headers=self._headers, params=self._params, proxies=self._proxies)
                 html = r.text
+                print(html)
                 status_code = r.status_code
                 if status_code != 200:
                     continue

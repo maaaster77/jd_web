@@ -16,12 +16,12 @@ def deal_spider_search(batch_id: str, search_type: int = 1):
             {'status': KeywordSearchQueue.StatusType.PROCESSING})
         db.session.flush()
         # TODO: 爬虫注释，需要的时候打开
-        # for data in spider.search_query(queue.keyword, queue.page):
-        #     for item in data:
-        #         result = item['content']
-        #         page = item['page']
-        #         SpiderSearchService.add_search_to_db(batch_id, search_type, queue.keyword, result, page)
-        #     db.session.commit()
+        for data in spider.search_query(q.keyword, q.page):
+            for item in data:
+                result = item['content']
+                page = item['page']
+                SpiderSearchService.add_search_to_db(batch_id, search_type, q.keyword, result, page)
+            db.session.commit()
         # TODO:爬虫打开的时候注释掉
         time.sleep(50)
         KeywordSearchQueue.query.filter_by(batch_id=batch_id, status=KeywordSearchQueue.StatusType.PROCESSING).update(
