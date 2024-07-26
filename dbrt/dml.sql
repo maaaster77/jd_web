@@ -225,7 +225,7 @@ values  (24, '财神', 0, 0, '2024-07-18 20:43:25', '2024-07-18 20:43:25'),
         (236, ' 二手信', 0, 0, '2024-07-18 20:56:53', '2024-07-18 20:56:53');
 
 
-insert into jd.keyword_search_parse_result (id, keyword, url, account, desc, created_at, updated_at)
+insert into jd.keyword_search_parse_result (id, keyword, url, account, `desc`, created_at, updated_at)
 values  (1, '二手信', 'https://www.34f23.com', '15042934321', '客服咨询002', '2024-07-22 18:36:18', '2024-07-22 18:36:18'),
         (2, '二手信', '', 'zjx383472', '微信号', '2024-07-22 18:36:18', '2024-07-22 18:36:18'),
         (3, '过检烟油', 'http://www.dd22e14.com', '', '网址', '2024-07-22 18:36:46', '2024-07-22 18:36:46'),
