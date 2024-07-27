@@ -14,9 +14,9 @@ class KeywordSearch(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     class StatusType:
-        PENDING = 0
-        PROCESSING = 1
-        PROCESSED = 2
+        PENDING = 0  # 待处理
+        PROCESSING = 1  # 进行中
+        PROCESSED = 2  # 已处理
 
     class SearchType:
         BAIDU = 1

@@ -139,4 +139,15 @@ CREATE TABLE `keyword_search_queue` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_batch_id` (`batch_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索队列'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='黑词搜索队列';
+
+
+CREATE TABLE `result_tag` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(32) not null default '' comment '标签名称',
+  `status` int not null default 0 comment '状态 0-正常 1-无效',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_title` (`title`)
+) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='标签';

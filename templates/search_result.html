@@ -30,6 +30,7 @@
         max-height: 200px; /* 设置最大高度，以适应屏幕空间 */
         overflow-y: auto; /* 当内容超出时显示垂直滚动条 */
     }
+
 </style>
 
 {% block content %}
@@ -52,7 +53,8 @@
                             <select class="selectpicker" multiple id="search_tag" name="search_tag"
                                     data-live-search="true" title="请选择">
                                 {% for tag in tag_list %}
-                                    <option value="{{ tag.id }}" {% if tag.id in default_tag_id_list %}selected{% endif %}>
+                                    <option value="{{ tag.id }}"
+                                            {% if tag.id in default_tag_id_list %}selected{% endif %}>
                                         {{ tag.name }}
                                     </option>
                                 {% endfor %}
@@ -83,26 +85,26 @@
                     <thead>
                     <tr>
                         <th scope="col"><input type="checkbox" id="select-all"></th>
-                        <th scope="col">序号</th>
-                        <th scope="col">关键词</th>
-                        <th scope="col">URL</th>
-                        <th scope="col">ACCOUNT</th>
-                        <th scope="col">DESC</th>
-                        <th scope="col">标签</th>
-                        <th scope="col">操作</th>
+                        <th scope="col" style="width: 100px">序号</th>
+                        <th scope="col" style="width: 100px">关键词</th>
+                        <th scope="col" style="width: 100px">URL</th>
+                        <th scope="col" style="width: 100px">ACCOUNT</th>
+                        <th scope="col" style="width: 200px">DESC</th>
+                        <th scope="col" style="width: 100px">标签</th>
+                        <th scope="col" style="width: 100px">操作</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for word in data %}
                         <tr>
                             <td><input type="checkbox" name="selectedWords" value="{{ word.id }}"></td>
-                            <td>{{ word.id }}</td>
-                            <td>{{ word.keyword }}</td>
-                            <td>{{ word.url }}</td>
-                            <td>{{ word.account }}</td>
-                            <td>{{ word.desc }}</td>
-                            <td>{{ word.tag }}</td>
-                            <td>
+                            <td style="width: 100px">{{ word.id }}</td>
+                            <td style="width: 100px">{{ word.keyword }}</td>
+                            <td style="width: 100px">{{ word.url }}</td>
+                            <td style="width: 100px">{{ word.account }}</td>
+                            <td style="width: 200px"> {{ word.desc }}</td>
+                            <td style="width: 100px">{{ word.tag }}</td>
+                            <td style="width: 100px">
                                 <a href="#" class="btn btn-sm  btn-primary edit-tag"
                                    data-parse-id="{{ word.id }}" data-parse-tag="{{ word.tag_id_list }}"
                                    data-bs-toggle="modal"
@@ -142,16 +144,6 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
-
-
-
-
-
-
-
-
-
-
                                         {{ url_for('api.black_keyword_search_result', page=current_page+1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}">下一页</a>
                             </li>
                         {% else %}
