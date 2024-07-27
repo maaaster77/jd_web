@@ -1,25 +1,27 @@
 import re
 
+
 def find_accounts(text):
     # QQ号正则表达式 (5-11位数字)
     qq_pattern = r'\b[1-9][0-9]{8,10}\b'
-    
+
     # 中国大陆手机号正则表达式
     phone_pattern = r'\b1[3-9]\d{9}\b'
-    
+
     # Telegram账号正则表达式 (@开头,4-32位字母、数字或下划线)
     telegram_pattern = r'@[a-zA-Z0-9_]{4,32}\b'
-    
+
     # 查找所有匹配项
     qq_numbers = re.findall(qq_pattern, text)
     phone_numbers = re.findall(phone_pattern, text)
     telegram_accounts = re.findall(telegram_pattern, text)
-    
+
     return {
-        'QQ号': qq_numbers,
-        '手机号': phone_numbers,
-        'Telegram账号': telegram_accounts
+        'qq_number': qq_numbers,
+        'phone_number': phone_numbers,
+        'telegram_number': telegram_accounts
     }
+
 
 # 测试代码
 test_text = """

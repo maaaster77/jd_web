@@ -8,6 +8,7 @@ from jd.models.keyword_search import KeywordSearch
 from jd.models.keyword_search_parse_result import KeywordSearchParseResult
 from jd.models.keyword_search_parse_result_tag import KeywordSearchParseResultTag
 from jd.models.keyword_search_queue import KeywordSearchQueue
+from jd.models.result_tag import ResultTag
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import deal_spider_search
 from jd.views import get_or_exception, APIException, success
@@ -99,28 +100,11 @@ def black_keyword_search():
 
 @api.route('/black_keyword/result', methods=['GET'])
 def black_keyword_search_result():
-    tag_list = [
-        {
-            'id': 1,
-            'name': '信件',
-        },
-        {
-            'id': 2,
-            'name': '烟油',
-        },
-        {
-            'id': 3,
-            'name': '色情',
-        },
-        {
-            'id': 4,
-            'name': '暴力',
-        },
-        {
-            'id': 5,
-            'name': '毒品',
-        },
-    ]
+    tags = ResultTag.query.filter_by(status=ResultTag.StatusType.VALID).all()
+    tag_list = [{
+        'id': row.id,
+        'name': row.title,
+    } for row in tags]
     args = request.args or request.form
     page = get_or_exception('page', args, 'int', 1)
     page_size = get_or_exception('page_size', args, 'int', 20)
@@ -169,7 +153,7 @@ def black_keyword_search_result():
     data = []
     for row in parse_result:
         parse_tag = parse_tag_result.get(row.id, [])
-        tag_text = ','.join([tag_dict[int(t)] for t in parse_tag])
+        tag_text = ','.join([tag_dict.get(int(t), '') for t in parse_tag if tag_dict.get(int(t), '')])
         data.append({
             'id': row.id,
             'keyword': row.keyword,
