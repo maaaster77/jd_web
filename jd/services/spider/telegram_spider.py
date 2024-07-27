@@ -29,7 +29,6 @@ class TelegramSpider:
             'username': self._get_div_text(soup, 'tgme_page_title'),
             'desc': self._get_div_text(soup, 'tgme_page_description')
         }
-        print('telegram data:{}'.format(data))
         return data
 
     def _get_div_text(self, soup, class_name):
@@ -40,7 +39,6 @@ class TelegramSpider:
                 text = div[0].img['src']
             else:
                 text = div[0].text.replace('\n', '')
-            print(f'telegram | class:{class_name}, text:{text}')
         return text
 
     def search_query(self, url=''):
@@ -58,10 +56,15 @@ class TelegramSpider:
 
 if __name__ == '__main__':
     spider = TelegramSpider()
-    # 用户
-    data = spider.search_query('https://t.me/feixingmeiluo')
-    print('user data:{}'.format(data))
-
-    # 群组, title中包含subscribers
-    data = spider.search_query('https://t.me/huaxuerou')
-    print('user data:{}'.format(data))
+    url_list = ['https://t.me/feixingmeiluo', 'https://t.me/huaxuerou', 'https://t.me/ppo995']
+    for url in url_list:
+        data = spider.search_query(url)
+        if data:
+            if '@' in data['account']:
+                print(f'个人账户：{url}, data:{data}')
+            elif 'subscribers' in data['account']:
+                print(f'群组账户：{url}, data:{data}')
+            else:
+                print(f'其他账户：{url}, data:{data}')
+        else:
+            print(f'{url}, 无数据')

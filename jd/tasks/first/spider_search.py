@@ -5,6 +5,7 @@ from jd import db
 from jd.models.black_keyword import BlackKeyword
 from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.services.spider.search import SpiderSearchService
+from jd.tasks.first.parse_result import parse_search_result
 
 
 @celery.task
@@ -27,5 +28,6 @@ def deal_spider_search(batch_id: str, search_type: int = 1):
         KeywordSearchQueue.query.filter_by(batch_id=batch_id, status=KeywordSearchQueue.StatusType.PROCESSING).update(
             {'status': KeywordSearchQueue.StatusType.PROCESSED})
         db.session.commit()
+    parse_search_result.delay(batch_id)
 
     return f'batch:{batch_id} spider end'
