@@ -84,8 +84,8 @@
                 <table class="table table-striped table-hover">
                     <thead>
                     <tr>
-                        <th scope="col"><input type="checkbox" id="select-all"></th>
-                        <th scope="col" style="width: 100px">序号</th>
+                        <th scope="col" style="width: 20px"><input type="checkbox" id="select-all"></th>
+                        <th scope="col" style="width: 50px">序号</th>
                         <th scope="col" style="width: 100px">关键词</th>
                         <th scope="col" style="width: 100px">URL</th>
                         <th scope="col" style="width: 100px">ACCOUNT</th>
@@ -97,8 +97,8 @@
                     <tbody>
                     {% for word in data %}
                         <tr>
-                            <td><input type="checkbox" name="selectedWords" value="{{ word.id }}"></td>
-                            <td style="width: 100px">{{ word.id }}</td>
+                            <td style="width: 20px"><input type="checkbox" name="selectedWords" value="{{ word.id }}"></td>
+                            <td style="width: 50px">{{ word.id }}</td>
                             <td style="width: 100px">{{ word.keyword }}</td>
                             <td style="width: 100px">{{ word.url }}</td>
                             <td style="width: 100px">{{ word.account }}</td>
