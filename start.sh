@@ -18,6 +18,15 @@ else
   echo "已关闭 Celery 进程: $pid"
 fi
 
+# 停止tg聊天抓取job
+pid=$(ps aux | grep 'chat_history' | grep -v grep | awk '{print $2}')
+if [ -z "$pid" ]; then
+  echo "聊天抓取脚本 未运行"
+else
+  kill -9 $pid
+  echo "已关闭 聊天抓取脚本 进程: $pid"
+fi
+
 
 # 启动celery
 echo "启动celery"
@@ -30,7 +39,10 @@ nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True -
 # 启动flask
 echo "启动web"
 nohup python -m web   > log/flask_out.txt 2>&1 &
-echo "web: http://127.0.0.1:8080"
+echo "web: http://127.0.0.1:8981"
 
+# 启动tg聊天记录抓取ojb
+echo "启动tg聊天记录抓取ojb"
+nohup python -m scripts.job chat_history > log/chat_history.txt 2>&1 &
 
 echo 'End'

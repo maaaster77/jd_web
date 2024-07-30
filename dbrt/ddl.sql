@@ -151,3 +151,47 @@ CREATE TABLE `result_tag` (
   PRIMARY KEY (`id`),
   KEY `idx_title` (`title`)
 ) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='标签';
+
+
+CREATE TABLE `tg_group` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) NOT NULL DEFAULT '' COMMENT '群组名称',
+  `chat_id` int NOT NULL DEFAULT 0 COMMENT '群组id',
+  `status` int NOT NULL DEFAULT 0 COMMENT '0-未加入 1-加入成功 2-加入失败',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `udx_name` (`name`)
+) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='tg群组表';
+
+CREATE TABLE `tg_group_chat_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `chat_id` int NOT NULL DEFAULT 0 COMMENT '群组id',
+  `message_id` int not null default 0 comment '消息id',
+  `user_id` int not null default 0 comment '用户id',
+  `username` varchar(128) not null default '' comment '用户名',
+  `nickname` varchar(128) not null default '' comment '用户昵称',
+  `postal_time` timestamp NOT NULL DEFAULT '1990-10-30 00:00:00',
+  `reply_to_msg_id` int not null default 0 comment '回复的消息id',
+  `message` text comment '信息',
+  `status`          int          default 0                     not null,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='tg群组聊天记录';
+
+
+CREATE TABLE `tg_group_user_info`
+(
+    `id`         int(11)      NOT NULL AUTO_INCREMENT,
+    `chat_id`    int          NOT NULL DEFAULT 0 COMMENT '群组id',
+    `user_id`    int          not null default 0 comment '用户id',
+    `username`   varchar(128) not null default '' comment '用户名',
+    `nickname`   varchar(128) not null default '' comment '用户昵称',
+    `detail`     text comment '信息 json信息',
+    `status`     int          not null default 0,
+    `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  CHARSET = utf8mb4 COMMENT ='tg群组用户信息';

@@ -70,3 +70,9 @@ celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info
 ```shell
 python web.py
 ```
+
+### 运行某个脚本
+```shell
+python -m scripts.job test
+
+```
