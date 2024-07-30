@@ -36,7 +36,7 @@ def parse_search_result(batch_id: str):
         else:
             db.session.rollback()
             continue
-        accounts_dict = find_accounts(search_result.result)
+        accounts_dict = find_accounts(search_result.result.split("缺少字词")[0])
         if not accounts_dict:
             KeywordSearch.query.filter_by(id=search_result.id, status=KeywordSearch.StatusType.PROCESSING).update(
                 {'status': KeywordSearch.StatusType.PROCESSED})
@@ -47,17 +47,19 @@ def parse_search_result(batch_id: str):
                 for telegram_account in account_list:
                     # 用户
                     telegram_account = telegram_account.lower().replace('+','')
+                    telegram_account = telegram_account.split("tele")[0]
                     url = f'https://t.me/{telegram_account.replace("@", "")}'
                     data = spider.search_query(url)
                     if not data:
                         continue
                     if '@' in data['account']:
                         # 个人账户
-                        desc = f'account:{telegram_account}, username:{data["username"]}, desc:{data["desc"]}'
+                        desc = f'username:{data["username"]}, desc:{data["desc"]}'
                     elif 'subscribers' in data['account']:
                         desc = 'Telegram群组账户'
                     else:
-                        desc = 'Telegram其他类型账户'
+                        # desc = 'Telegram其他类型账户'
+                        continue
                     add_or_update_keyword_search_result(account=telegram_account, keyword=search_result.keyword, url=url, desc=desc)
             elif account_type == 'qq_number':
                 # qq群

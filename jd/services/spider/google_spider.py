@@ -5,7 +5,24 @@ import requests
 from bs4 import BeautifulSoup
 
 from jd import app
+import os
 
+
+def save_url(url,response):
+    filename = url.split('//')[1]  # 获取最后一部分作为文件名
+    filename = filename.split('?')[0]  # 移除 URL 中的查询参数
+    # 替换或移除文件名中的非法字符
+    filename = filename.replace(':', '_').replace('/', '_').replace('\\', '_')
+        
+    # 保存文件的路径
+    save_path = os.path.join('log/html', filename)
+        
+    # 确保目录存在
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        
+        # 将内容写入文件
+    with open(save_path, 'wb') as file:
+        file.write(response.content)
 
 class GoogleSpider:
     def __init__(self):
@@ -59,6 +76,7 @@ class GoogleSpider:
                 status_code = r.status_code
                 if status_code != 200:
                     continue
+                save_url(f"{self._url}_page{page}",r)
                 yield self._parse_result(page, html)
             except Exception as e:
                 print(e)
