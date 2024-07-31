@@ -46,7 +46,7 @@
                     <tr>
                         <th scope="col" style="width: 100px">序号</th>
                         <th scope="col" style="width: 100px">群组名称</th>
-                        <th scope="col" style="width: 100px">用户Id</th>
+                        <th scope="col" style="width: 100px">用户名称</th>
                         <th scope="col" style="width: 100px">用户昵称</th>
                         <th scope="col" style="width: 200px">内容</th>
                         <th scope="col" style="width: 100px">发送时间</th>
@@ -57,9 +57,14 @@
                         <tr>
                             <td style="width: 100px">{{ word.id }}</td>
                             <td style="width: 100px">{{ word.group_name }}</td>
-                            <td style="width: 100px">{{ word.user_id }}</td>
+                            <td style="width: 100px">{{ word.username }}</td>
                             <td style="width: 100px">{{ word.nickname }}</td>
-                            <td style="width: 200px">{{ word.message }}</td>
+                            <td style="width: 200px">{{ word.message }}
+                                {% if word.photo_path %}
+                                	<img style="width: 650px; height: 100px" src="{{ url_for('static', filename=word.photo_path) }}" alt="">
+                                {% endif %}
+
+                            </td>
                             <td style="width: 100px">{{ word.postal_time }}</td>
                         </tr>
                     {% endfor %}
@@ -71,7 +76,7 @@
                         {% if current_page > 1 %}
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="{{ url_for('api.black_keyword_search_result', page=current_page-1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}"
+                                   href="{{ url_for('api.tg_chat_room_history', page=current_page-1, page_size=page_size) }}"
                                    tabindex="-1" aria-disabled="true">上一页</a>
                             </li>
                         {% else %}
@@ -85,14 +90,14 @@
                                 <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
                             {% else %}
                                 <li class="page-item"><a class="page-link"
-                                                         href="{{ url_for('api.black_keyword_search_result', page=page, page_size=page_size,search_keyword=search_keyword, search_tag=search_tag) }}">{{ page }}</a>
+                                                         href="{{ url_for('api.tg_chat_room_history', page=page, page_size=page_size) }}">{{ page }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
 
                         {% if current_page < total_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('api.black_keyword_search_result', page=current_page+1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}">下一页</a>
+                                <a class="page-link" href="{{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled">

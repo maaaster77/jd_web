@@ -9,7 +9,10 @@ from telethon import TelegramClient
 from telethon.tl.functions.channels import JoinChannelRequest, GetFullChannelRequest, GetParticipantsRequest
 from telethon.tl.functions.contacts import GetContactsRequest, DeleteContactsRequest
 from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInviteRequest, GetFullChatRequest
-from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch
+from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch, \
+    ChannelForbidden, InputMessagesFilterPhotos
+
+from jd import app, JD_ROOT
 
 
 class TelegramSpider:
@@ -90,7 +93,7 @@ class TelegramAPIs(object):
             self.client.disconnect()
 
     # 加入频道或群组
-    def join_conversation(self, invite):
+    async def join_conversation(self, invite):
         """
         加入方式主要分为
             1. 加入公开群组/频道：invite为username
@@ -115,14 +118,14 @@ class TelegramAPIs(object):
         try:
             # Checking a link without joining
             # 检测私有频道或群组时，由于传入的是hash，可能会失败(已测试，除非是被禁止的，否则也会成功)
-            updates = self.client(CheckChatInviteRequest(invite))
+            updates = await self.client(CheckChatInviteRequest(invite))
             if isinstance(updates, ChatInviteAlready):
                 chat_id = updates.chat.id
                 # chat = updates.chat
                 result = "Done"
             elif isinstance(updates, ChatInvite):
                 # Joining a private chat or channel
-                updates = self.client(ImportChatInviteRequest(invite))
+                updates = await self.client(ImportChatInviteRequest(invite))
                 # updates = self.client(CheckChatInviteRequest(invite))
                 chat_id = updates.chats[0].id
                 # chat = updates.chats[0]
@@ -130,7 +133,7 @@ class TelegramAPIs(object):
         except Exception as e:
             try:
                 # Joining a public chat or channel
-                updates = self.client(JoinChannelRequest(invite))
+                updates = await self.client(JoinChannelRequest(invite))
                 result = "Done"
             except Exception as ee:
                 result_json["reason"] = str(ee)
@@ -193,13 +196,13 @@ class TelegramAPIs(object):
         """
         self.client(DeleteContactsRequest(ids))
 
-    def get_dialog_list(self):
+    async def get_dialog_list(self):
         """
         获取已经加入的频道/群组列表
         :return: 返回json, {'data': [], 'result': 'success/failed', 'reason':''}
         data: list类型，
         """
-        for dialog in self.client.get_dialogs():
+        async for dialog in self.client.iter_dialogs():
             # 确保每次数据的准确性
             result_json = {"result": "success", "reason": "ok"}
             out = {}
@@ -207,13 +210,13 @@ class TelegramAPIs(object):
             if hasattr(dialog.entity, "title"):
                 chat = dialog.entity
                 if isinstance(chat, Channel):
-                    channel_full = self.client(GetFullChannelRequest(chat))
+                    channel_full = await self.client(GetFullChannelRequest(chat))
                     member_count = channel_full.full_chat.participants_count
                     channel_description = channel_full.full_chat.about
                     username = channel_full.chats[0].username
                     megagroup = channel_full.chats[0].megagroup
                 elif isinstance(chat, Chat):
-                    channel_full = self.client(GetFullChatRequest(chat.id))
+                    channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
                     # channel_description = channel_full.full_chat.about
                     channel_description = ""
@@ -240,7 +243,7 @@ class TelegramAPIs(object):
                 result_json["data"] = out
                 yield result_json
 
-    def get_dialog(self, chat_id, is_more=False):
+    async def get_dialog(self, chat_id, is_more=False):
         """
         方法一：通过遍历的方式获取chat对象，当chat_id相等时，返回
         方法二：对于已经加入的频道/群组，可以直接使用get_entity方法
@@ -251,17 +254,103 @@ class TelegramAPIs(object):
         # 方法一
         if is_more:
             chat = None
-            for dialog in self.client.get_dialogs():
+            async for dialog in self.client.iter_dialogs():
                 if dialog.entity.id == chat_id:
                     chat = dialog.entity
                     break
         # 方法二
         else:
-            chat = self.client.get_entity(chat_id)
+            chat = await self.client.get_entity(chat_id)
 
         return chat
 
-    def scan_message(self, chat, **kwargs):
+    async def scan_message(self, chat, **kwargs):
+        """
+        遍历消息
+        :param chat:
+        :param kwargs:
+        """
+        tick = 0
+        waterline = randint(5, 20)
+        limit = kwargs["limit"]
+        min_id = kwargs["last_message_id"]
+        # 默认只能从最远开始爬取
+        offset_date = kwargs.get("offset_date", None)
+        count = 0
+        image_path = os.path.join(app.static_folder, 'images')
+        os.makedirs(image_path, exist_ok=True)
+        async for message in self.client.iter_messages(
+                chat,
+                limit=limit,
+                offset_date=offset_date,
+                offset_id=min_id,
+                wait_time=1,
+                reverse=False,
+        ):
+
+            if isinstance(message, Message):
+                content = ""
+                try:
+                    content = message.message
+                except Exception as e:
+                    print(e)
+                m = dict()
+                m["message_id"] = message.id
+                m["user_id"] = 0
+                m["user_name"] = ""
+                m["nick_name"] = ""
+                m["reply_to_msg_id"] = 0
+                m["from_name"] = ""
+                m["from_time"] = datetime.datetime.fromtimestamp(657224281)
+                if message.sender:
+                    m["user_id"] = message.sender.id
+                    if isinstance(message.sender, ChannelForbidden):
+                        username = ""
+                    else:
+                        username = message.sender.username
+                        username = username if username else ""
+                    m["user_name"] = username
+                    if isinstance(message.sender, Channel) or isinstance(
+                            message.sender, ChannelForbidden
+                    ):
+                        first_name = message.sender.title
+                        last_name = ""
+                    else:
+                        first_name = message.sender.first_name
+                        last_name = message.sender.last_name
+                        first_name = first_name if first_name else ""
+                        last_name = " " + last_name if last_name else ""
+                    m["nick_name"] = "{0}{1}".format(first_name, last_name)
+                if message.is_reply:
+                    m["reply_to_msg_id"] = message.reply_to_msg_id
+                if message.forward:
+                    m["from_name"] = message.forward.from_name
+                    m["from_time"] = message.forward.date
+                m["chat_id"] = chat.id
+                # m['postal_time'] = message.date.strftime('%Y-%m-%d %H:%M:%S')
+                m["postal_time"] = message.date
+                m["message"] = content
+                photo = message.photo
+                m['photo'] = {}
+                if photo:
+                    file_name = f'{image_path}/{str(photo.id)}.jpg'
+                    m['photo'] = {
+                        'photo_id': photo.id,
+                        'access_hash': photo.access_hash,
+                        'file_path': f'images/{str(photo.id)}.jpg'
+                    }
+                    await self.client.download_media(message=message, file=file_name, thumb=-1)
+
+                tick += 1
+                if tick >= waterline:
+                    tick = 0
+                    waterline = randint(5, 10)
+                    time.sleep(waterline)
+                count += 1
+                yield m
+        print("total: %d" % count)
+
+    async def scan_message_photo(self, chat, **kwargs):
         """
         遍历消息
         :param chat:
@@ -278,14 +367,14 @@ class TelegramAPIs(object):
                 kwargs["offset_date"], "%Y-%m-%d %H:%M:%S"
             )
         count = 0
-        for message in self.client.iter_messages(
+        async for message in self.client.iter_messages(
                 chat,
                 limit=limit,
                 offset_date=offset_date,
                 offset_id=min_id,
                 wait_time=1,
                 reverse=True,
-        ):
+                filter=InputMessagesFilterPhotos):
 
             if isinstance(message, Message):
                 content = ""
@@ -331,6 +420,7 @@ class TelegramAPIs(object):
                 # m['postal_time'] = message.date.strftime('%Y-%m-%d %H:%M:%S')
                 m["postal_time"] = message.date
                 m["message"] = content
+                m['photo'] = message.photo
                 tick += 1
                 if tick >= waterline:
                     tick = 0
@@ -340,11 +430,12 @@ class TelegramAPIs(object):
                 yield m
         print("total: %d" % count)
 
-    def get_chatroom_user_info(self, chat_id, nick_name):
-        chat = self.get_dialog(chat_id, is_more=True)
+
+    async def get_chatroom_user_info(self, chat_id, nick_name):
+        chat = self.get_dialog(chat_id)
         result = {}
         try:
-            participants = self.client(
+            participants = await self.client(
                 GetParticipantsRequest(
                     chat,
                     filter=ChannelParticipantsSearch(nick_name),
@@ -363,20 +454,17 @@ class TelegramAPIs(object):
 
         for entity in participants.users:
             user_info = entity.to_dict()
-            print(f'{nick_name}:{entity.to_dict()}')
-            return user_info
-
-        print(
-            "在《{}》群中找到{}个昵称为《{}》的用户，休眠5-10秒".format(
-                chat.title, len(participants.users), nick_name
-            )
-        )
-        time.sleep(randint(5, 10))
+            # result[user_info['']]
+            print(f'{nick_name}:{user_info}')
+            # return user_info
 
         return result
 
+    async def download_photo(self):
+        pass
 
-if __name__ == '__main__':
+
+def test_tg_spider():
     spider = TelegramSpider()
     url_list = ['https://t.me/feixingmeiluo', 'https://t.me/huaxuerou', 'https://t.me/ppo995']
     for url in url_list:
@@ -390,3 +478,61 @@ if __name__ == '__main__':
                 print(f'其他账户：{url}, data:{data}')
         else:
             print(f'{url}, 无数据')
+
+
+if __name__ == '__main__':
+    app.ready(db_switch=False, web_switch=False, worker_switch=False)
+    tg = TelegramAPIs()
+    config_js = app.config['TG_CONFIG']
+    session_name = f'{app.static_folder}/utils/{config_js.get("session_name")}'
+    api_id = config_js.get("api_id")
+    api_hash = config_js.get("api_hash")
+    proxy = config_js.get("proxy", {})
+    clash_proxy = None
+    # 配置代理
+    # if proxy:
+    #     protocal = proxy.get("protocal", "socks5")
+    #     proxy_ip = proxy.get("ip", "127.0.0.1")
+    #     proxy_port = proxy.get("port", 7890)
+    #     clash_proxy = (protocal, proxy_ip, proxy_port)
+    tg.init_client(
+        session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
+    )
+
+
+    # async def get_group_list():
+    #     group_list = tg.get_dialog_list()
+    #     result = []
+    #     async for group in group_list:
+    #         result.append(group)
+    #     print('group_list:', result)
+    #
+    #
+    # with tg.client:
+    #     tg.client.loop.run_until_complete(get_group_list())
+
+    # async def join_group():
+    #     group_name = 'bajiebest'
+    #     result = await tg.join_conversation(group_name)
+    #     {'data': {'id': 1704694555, 'group_name': 'bajiebest'}, 'result': 'Done', 'reason': ''}
+    #     print(result)
+    #
+    # with tg.client:
+    #     tg.client.loop.run_until_complete(join_group())
+    async def scan_message_photo():
+        params = {
+            "limit": 20,
+            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+            "last_message_id": -1,
+        }
+        group_id = 1704694555
+        chat = await tg.get_dialog(group_id)
+        print(chat)
+        history = tg.scan_message(chat, **params)
+        async for message in history:
+            print(message)
+
+
+    with tg.client:
+        tg.client.loop.run_until_complete(scan_message_photo())
+

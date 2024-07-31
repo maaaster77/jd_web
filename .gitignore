@@ -162,3 +162,8 @@ cython_debug/
 .idea/
 
 log/
+
+/static/images
+/static/utils
+
+/config_local.py
