@@ -11,7 +11,9 @@ class TgService:
     def init_tg(cls):
         tg = TelegramAPIs()
         config_js = app.config['TG_CONFIG']
-        session_name = f'{app.static_folder}/utils/{config_js.get("session_name")}'
+        session_dir = f'{app.static_folder}/utils'
+        os.makedirs(session_dir, exist_ok=True)
+        session_name = f'{session_dir}/{config_js.get("session_name")}'
         api_id = config_js.get("api_id")
         api_hash = config_js.get("api_hash")
         proxy = config_js.get("proxy", {})
