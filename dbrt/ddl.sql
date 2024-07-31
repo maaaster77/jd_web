@@ -156,7 +156,7 @@ CREATE TABLE `result_tag` (
 CREATE TABLE `tg_group` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) NOT NULL DEFAULT '' COMMENT '群组名称',
-  `chat_id` int NOT NULL DEFAULT 0 COMMENT '群组id',
+  `chat_id` varchar(128) NOT NULL DEFAULT '' COMMENT '聊天室id',
   `status` int NOT NULL DEFAULT 0 COMMENT '0-未加入 1-加入成功 2-加入失败',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -166,29 +166,31 @@ CREATE TABLE `tg_group` (
 
 CREATE TABLE `tg_group_chat_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `chat_id` int NOT NULL DEFAULT 0 COMMENT '群组id',
-  `message_id` int not null default 0 comment '消息id',
-  `user_id` int not null default 0 comment '用户id',
-  `username` varchar(128) not null default '' comment '用户名',
-  `nickname` varchar(128) not null default '' comment '用户昵称',
+  `chat_id` varchar(128) NOT NULL DEFAULT '' COMMENT '聊天室id',
+  `message_id` varchar(128) NOT NULL DEFAULT '' COMMENT '消息id',
+  `user_id` varchar(128) NOT NULL DEFAULT '' COMMENT '用户id',
+  `username` varchar(128) NOT NULL DEFAULT '' COMMENT '用户名',
+  `nickname` varchar(128) NOT NULL DEFAULT '' COMMENT '用户昵称',
   `postal_time` timestamp NOT NULL DEFAULT '1990-10-30 00:00:00',
-  `reply_to_msg_id` int not null default 0 comment '回复的消息id',
-  `message` text comment '信息',
-  `status`          int          default 0                     not null,
+  `reply_to_msg_id` varchar(128) NOT NULL DEFAULT '' COMMENT '回复的消息id',
+  `message` text COMMENT '信息',
+  `photo_path`   varchar(256) default ''  not null comment '图片地址',
+  `status` int(11) NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='tg群组聊天记录';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='tg群组聊天记录';
 
 
 CREATE TABLE `tg_group_user_info`
 (
     `id`         int(11)      NOT NULL AUTO_INCREMENT,
-    `chat_id`    int          NOT NULL DEFAULT 0 COMMENT '群组id',
-    `user_id`    int          not null default 0 comment '用户id',
+    `chat_id`    varchar(128)          NOT NULL DEFAULT '' COMMENT '群组id',
+    `user_id`    varchar(128)          not null default '' comment '用户id',
     `username`   varchar(128) not null default '' comment '用户名',
     `nickname`   varchar(128) not null default '' comment '用户昵称',
-    `detail`     text comment '信息 json信息',
+    `desc`       varchar(1024) not null  default '' comment '描述信息',
+    `photo`     varchar(1024) not null default '' comment '描述信息',
     `status`     int          not null default 0,
     `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

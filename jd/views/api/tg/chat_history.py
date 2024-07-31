@@ -18,7 +18,7 @@ def tg_chat_room_history():
     # 计算总页数
     total_pages = (total_records + page_size - 1) // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
-    chat_room = {r.id: r.name for r in chat_room}
+    chat_room = {r.chat_id: r.name for r in chat_room}
     rows = db.session.query(TgGroupChatHistory).order_by(TgGroupChatHistory.id.desc()).offset(offset).limit(
         page_size).all()
     data = []
@@ -31,7 +31,9 @@ def tg_chat_room_history():
             'nickname': r.nickname,
             'postal_time': r.postal_time,
             'username': r.username,
-            'user_id': r.user_id
+            'user_id': r.user_id,
+            # 'photo_path': f'http://127.0.0.1:8000/{r.photo_path}'
+            'photo_path': r.photo_path
         })
 
-    return render_template('chat_room_history.html', data=data, total_pages=total_records, current_page=page)
+    return render_template('chat_room_history.html', data=data, total_pages=total_pages, current_page=page, page_size=page_size)
