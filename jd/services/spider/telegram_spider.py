@@ -176,11 +176,11 @@ class TelegramAPIs(object):
             else:
                 pass
 
-    def get_me(self):
+    async def get_me(self):
         """
         获取当前账户信息
         """
-        myself = self.client.get_me()
+        myself = await self.client.get_me()
         return myself
 
     def get_contacts(self):
@@ -430,10 +430,9 @@ class TelegramAPIs(object):
                 yield m
         print("total: %d" % count)
 
-
     async def get_chatroom_user_info(self, chat_id, nick_name):
-        chat = self.get_dialog(chat_id)
-        result = {}
+        chat = await self.get_dialog(chat_id)
+        result = []
         try:
             participants = await self.client(
                 GetParticipantsRequest(
@@ -446,49 +445,49 @@ class TelegramAPIs(object):
             )
         except Exception as e:
             print("查找《{}》用户失败，失败原因：{}".format(nick_name, str(e)))
-            return {}
+            return []
 
         if not participants.users:
             print("未找到《{}》用户。".format(nick_name))
-            return {}
+            return []
 
         for entity in participants.users:
             user_info = entity.to_dict()
-            # result[user_info['']]
+            result.append({'user_id': user_info['id'],
+                           'username': user_info['username'],
+                           'first_name': user_info['first_name'],
+                           'last_name': user_info['last_name']})
             print(f'{nick_name}:{user_info}')
-            # return user_info
 
         return result
 
-    async def get_chatroom_all_user_info(self, chat_id, nick_name):
+    async def get_chatroom_all_user_info(self, chat_id):
         chat = await self.get_dialog(chat_id)
-        result = {}
+        result = []
         try:
             participants = await self.client(
                 GetParticipantsRequest(
                     chat,
                     filter=ChannelParticipantsRecent(),
                     offset=0,
-                    limit=20,
+                    limit=50,
                     hash=0,
                 )
             )
         except Exception as e:
-            print("查找《{}》用户失败，失败原因：{}".format(nick_name, str(e)))
-            return {}
+            print("查找《{}》用户失败，失败原因：{}".format(chat_id, str(e)))
+            return []
 
         if not participants.users:
-            print("未找到《{}》用户。".format(nick_name))
-            return {}
+            print("未找到《{}》用户。".format(chat_id))
+            return []
 
         for entity in participants.users:
             user_info = entity.to_dict()
-            # result[user_info['']]
-            print({'user_id': user_info['id'],
-                   'username': user_info['username'],
-                   'first_name': user_info['first_name'],
-                   'last_name': user_info['last_name']})
-            # return user_info
+            result.append({'user_id': user_info['id'],
+                           'username': user_info['username'],
+                           'first_name': user_info['first_name'],
+                           'last_name': user_info['last_name']})
 
         return result
 
@@ -536,17 +535,15 @@ if __name__ == '__main__':
     #         result.append(group)
     #     print('group_list:', result)
     #
-    #
-    # with tg.client:
-    #     tg.client.loop.run_until_complete(get_group_list())
 
     # async def join_group():
-    #     group_name = 'bajiebest'
+    #     # group_name = 'bajiebest'
+    #     group_name = 'chaoshi99999'
     #     result = await tg.join_conversation(group_name)
     #     print(result)
+
     #
-    # with tg.client:
-    #     tg.client.loop.run_until_complete(join_group())
+
     # async def scan_message_photo():
     #     params = {
     #         "limit": 20,
@@ -561,16 +558,17 @@ if __name__ == '__main__':
     #         print(message)
     #
     #
-    # with tg.client:
-    #     tg.client.loop.run_until_complete(scan_message_photo())
-
 
     async def get_group_users():
-        group_id = 1704694555
-        result = await tg.get_chatroom_all_user_info(group_id, 'bajie')
+        group_id = 1610505522
+        result = await tg.get_chatroom_all_user_info(group_id)
         print(result)
+
+    # async def get_group_users():
+    #     group_id = 1610505522
+    #     result = await tg.get_chatroom_user_info(group_id, '小胖')
+    #     print(result)
+
 
     with tg.client:
         tg.client.loop.run_until_complete(get_group_users())
-
-

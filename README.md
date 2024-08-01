@@ -76,3 +76,8 @@ python web.py
 python -m scripts.job test
 
 ```
+
+### tg初始化，用户生成session文件，tg操作前请先操作该命令
+```shell
+python -m scripts.job init_tg
+```

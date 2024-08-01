@@ -23,8 +23,8 @@ GOOGLE_SPIDER_PROXIES = {}
 
 # Tg配置
 TG_CONFIG = {
-    "api_id": "28331850",
-    "api_hash": "c4f94e284a955113ca4240c7a7c071a6",
+    "api_id": "",
+    "api_hash": "",
     "session_name": "jd.session",
     "sqlite_db_name": "jd_tg.db",
     "proxy": {

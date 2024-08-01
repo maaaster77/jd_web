@@ -36,13 +36,13 @@
                 </div>
                 <div class="form-check form-check-inline ml-3">
                     <input class="form-check-input" type="radio" name="searchEngine" id="searchEngineBaidu"
-                           value="1" >
+                           value="1">
                     <label class="form-check-label" for="searchEngineBaidu">百度</label>
                 </div>
 
                 <div class="form-check form-check-inline ml-3">
                     <input class="form-check-input" type="radio" name="searchEngine" id="searchEngineTG"
-                           value="3" >
+                           value="3">
                     <label class="form-check-label" for="searchEngineTG">TELEGRAM</label>
                 </div>
 
@@ -112,6 +112,7 @@
 
 
 
+
                                         {{ url_for('api.black_keyword_list', page=current_page+1, page_size=page_size) }}">下一页</a>
                             </li>
                         {% else %}
@@ -139,6 +140,12 @@
         $(document).on('click', '.search_keyword', function (e) {
             console.log('点击搜索')
             e.preventDefault();
+            const search_type = $('input[name="searchEngine"]:checked').val();
+            if (!search_type) {
+                alert('请选择搜索引擎');
+                return;
+            }
+            console.log('search_type:', search_type);
             const selectedKeywords = [];
             // 遍历所有的checkbox，收集被选中的关键词ID
             $('input[name="selectedWords"]:checked').each(function () {
@@ -146,16 +153,13 @@
             });
             const keywords = selectedKeywords.join(',');
             console.log('keyword:', keywords);
-            if (!keywords) {
-                alert('请选择关键词');
-                return;
+            if (search_type !== '3') {
+                if (!keywords) {
+                    alert('请选择关键词');
+                    return;
+                }
             }
-            const search_type = $('input[name="searchEngine"]:checked').val();
-            if (!search_type) {
-                alert('请选择搜索引擎');
-                return;
-            }
-            console.log('search_type:', search_type);
+
 
             if (selectedKeywords) {
                 $.ajax({

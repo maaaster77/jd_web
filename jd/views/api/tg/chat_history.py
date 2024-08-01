@@ -13,6 +13,7 @@ def tg_chat_room_history():
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
     page_size = get_or_exception('page_size', args, 'int', 20)
+    search_content = get_or_exception('search_content', args, 'str', '')
     search_chat_id_list = args.getlist('search_group_id')
     search_user_id_list = args.getlist('search_user_id')
     offset = (page - 1) * page_size
@@ -22,6 +23,8 @@ def tg_chat_room_history():
         query = query.filter(TgGroupChatHistory.chat_id.in_(search_chat_id_list))
     if search_user_id_list:
         query = query.filter(TgGroupChatHistory.user_id.in_(search_user_id_list))
+    if search_content:
+        query = query.filter(TgGroupChatHistory.message.like(f'%{search_content}%'))
     # 计算总记录数
     total_records = query.count()
     # 计算总页数
@@ -56,4 +59,5 @@ def tg_chat_room_history():
 
 
     return render_template('chat_room_history.html', data=data, group_list=group_list, total_pages=total_pages,
-                           current_page=page, page_size=page_size, group_user_list=group_user_list, default_chat_id=search_chat_id_list, default_user_id=search_user_id_list)
+                           current_page=page, page_size=page_size, group_user_list=group_user_list, default_chat_id=search_chat_id_list,
+                           default_user_id=search_user_id_list, default_search_content=search_content)

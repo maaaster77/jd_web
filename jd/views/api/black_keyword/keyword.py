@@ -9,8 +9,10 @@ from jd.models.keyword_search_parse_result import KeywordSearchParseResult
 from jd.models.keyword_search_parse_result_tag import KeywordSearchParseResultTag
 from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.models.result_tag import ResultTag
+from jd.models.tg_group import TgGroup
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import deal_spider_search
+from jd.tasks.first.tg import fetch_group_recent_user_info
 from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
@@ -80,20 +82,24 @@ def black_keyword_delete():
 @api.route('/black_keyword/search', methods=['POST'])
 def black_keyword_search():
     args = request.json
-    keyword_id_list = get_or_exception('keywords', args, 'str')
     search_type = get_or_exception('search_type', args, 'int', default=1)
-    if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE]:
+    if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE, KeywordSearch.SearchType.TELEGRAM]:
         raise APIException('搜索类型错误')
-    keyword_id_list = [int(k) for k in keyword_id_list.split(',')]
-    keyword_list = db.session.query(BlackKeyword).filter(BlackKeyword.id.in_(keyword_id_list),
-                                                         BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).all()
+    if search_type == KeywordSearch.SearchType.TELEGRAM:
+        # 抓群组内的最近用户
+        fetch_group_recent_user_info.delay()
+    else:
+        keyword_id_list = get_or_exception('keywords', args, 'str')
+        keyword_id_list = [int(k) for k in keyword_id_list.split(',')]
+        keyword_list = db.session.query(BlackKeyword).filter(BlackKeyword.id.in_(keyword_id_list),
+                                                             BlackKeyword.is_delete == BlackKeyword.DeleteType.NORMAL).all()
 
-    for k in keyword_list:
-        batch_id = SpiderSearchService.generate_batch_id()
-        obj = KeywordSearchQueue(batch_id=batch_id, keyword=k.keyword, search_type=search_type)
-        db.session.add(obj)
-        db.session.commit()
-        deal_spider_search.delay(batch_id, search_type)
+        for k in keyword_list:
+            batch_id = SpiderSearchService.generate_batch_id()
+            obj = KeywordSearchQueue(batch_id=batch_id, keyword=k.keyword, search_type=search_type)
+            db.session.add(obj)
+            db.session.commit()
+            deal_spider_search.delay(batch_id, search_type)
 
     return success({'msg': '搜索中，请稍后！'})
 
