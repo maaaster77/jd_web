@@ -10,7 +10,7 @@ from telethon.tl.functions.channels import JoinChannelRequest, GetFullChannelReq
 from telethon.tl.functions.contacts import GetContactsRequest, DeleteContactsRequest
 from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInviteRequest, GetFullChatRequest
 from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch, \
-    ChannelForbidden, InputMessagesFilterPhotos
+    ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent
 
 from jd import app, JD_ROOT
 
@@ -460,8 +460,37 @@ class TelegramAPIs(object):
 
         return result
 
-    async def download_photo(self):
-        pass
+    async def get_chatroom_all_user_info(self, chat_id, nick_name):
+        chat = await self.get_dialog(chat_id)
+        result = {}
+        try:
+            participants = await self.client(
+                GetParticipantsRequest(
+                    chat,
+                    filter=ChannelParticipantsRecent(),
+                    offset=0,
+                    limit=20,
+                    hash=0,
+                )
+            )
+        except Exception as e:
+            print("查找《{}》用户失败，失败原因：{}".format(nick_name, str(e)))
+            return {}
+
+        if not participants.users:
+            print("未找到《{}》用户。".format(nick_name))
+            return {}
+
+        for entity in participants.users:
+            user_info = entity.to_dict()
+            # result[user_info['']]
+            print({'user_id': user_info['id'],
+                   'username': user_info['username'],
+                   'first_name': user_info['first_name'],
+                   'last_name': user_info['last_name']})
+            # return user_info
+
+        return result
 
 
 def test_tg_spider():
@@ -514,25 +543,34 @@ if __name__ == '__main__':
     # async def join_group():
     #     group_name = 'bajiebest'
     #     result = await tg.join_conversation(group_name)
-    #     {'data': {'id': 1704694555, 'group_name': 'bajiebest'}, 'result': 'Done', 'reason': ''}
     #     print(result)
     #
     # with tg.client:
     #     tg.client.loop.run_until_complete(join_group())
-    async def scan_message_photo():
-        params = {
-            "limit": 20,
-            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
-            "last_message_id": -1,
-        }
-        group_id = 1704694555
-        chat = await tg.get_dialog(group_id)
-        print(chat)
-        history = tg.scan_message(chat, **params)
-        async for message in history:
-            print(message)
+    # async def scan_message_photo():
+    #     params = {
+    #         "limit": 20,
+    #         # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+    #         "last_message_id": -1,
+    #     }
+    #     group_id = 1704694555
+    #     chat = await tg.get_dialog(group_id)
+    #     print(chat)
+    #     history = tg.scan_message(chat, **params)
+    #     async for message in history:
+    #         print(message)
+    #
+    #
+    # with tg.client:
+    #     tg.client.loop.run_until_complete(scan_message_photo())
 
+
+    async def get_group_users():
+        group_id = 1704694555
+        result = await tg.get_chatroom_all_user_info(group_id, 'bajie')
+        print(result)
 
     with tg.client:
-        tg.client.loop.run_until_complete(scan_message_photo())
+        tg.client.loop.run_until_complete(get_group_users())
+
 

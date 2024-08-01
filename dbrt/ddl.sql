@@ -190,7 +190,7 @@ CREATE TABLE `tg_group_user_info`
     `username`   varchar(128) not null default '' comment '用户名',
     `nickname`   varchar(128) not null default '' comment '用户昵称',
     `desc`       varchar(1024) not null  default '' comment '描述信息',
-    `photo`     varchar(1024) not null default '' comment '描述信息',
+    `photo`     varchar(1024) not null default '' comment '头像地址',
     `status`     int          not null default 0,
     `created_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
