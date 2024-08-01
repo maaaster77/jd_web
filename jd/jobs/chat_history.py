@@ -29,7 +29,7 @@ class TgChatHistoryJob:
                 if not chat:
                     return
             param = {
-                "limit": 20,
+                "limit": 60,
                 # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
                 "last_message_id": -1,
             }
@@ -68,7 +68,7 @@ class TgChatHistoryJob:
                 username = data.get("user_name", "")
                 if not username:
                     continue
-                # fetch_group_user_info.delay(chat_id, user_id, nickname)
+                fetch_group_user_info.delay(chat_id, user_id, nickname, username)
 
         for chat_room in chat_room_list:
             chat_id = chat_room.chat_id
@@ -78,11 +78,11 @@ class TgChatHistoryJob:
 
 def run():
     job = TgChatHistoryJob()
-    # while True:
-    #     try:
-    #         job.main()
-    #         time.sleep(10)
-    #     except Exception as ex:
-    #         print(ex)
-    #         return
-    job.main()
+    while True:
+        try:
+            job.main()
+            time.sleep(60)
+        except Exception as ex:
+            print(ex)
+            return
+    # job.main()

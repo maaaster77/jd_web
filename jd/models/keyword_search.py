@@ -21,3 +21,4 @@ class KeywordSearch(db.Model):
     class SearchType:
         BAIDU = 1
         GOOGLE = 2
+        TELEGRAM = 3
