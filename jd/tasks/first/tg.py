@@ -18,8 +18,24 @@ def join_group(group_name):
         db.session.add(TgGroup(group_name=group_name))
         db.session.commit()
     tg = TgService.init_tg()
-    TgService.join_group(tg, group_name)
-    db.session.commit()
+
+    async def join():
+        result = await tg.join_conversation(group_name)
+        chat_id = result.get('data', {}).get('id', 0)
+        if result.get('result', 'Failed') == 'Failed':
+            update_info = {
+                'status': TgGroup.StatusType.JOIN_FAIL
+            }
+        else:
+            update_info = {
+                'status': TgGroup.StatusType.JOIN_SUCCESS,
+                'chat_id': chat_id
+            }
+        TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.NOT_JOIN).update(update_info)
+        db.session.commit()
+
+    with tg.client:
+        tg.client.loop.run_until_complete(join())
 
 
 @celery.task

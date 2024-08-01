@@ -28,18 +28,3 @@ class TgService:
             session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
         )
         return tg
-
-    @classmethod
-    def join_group(cls, tg, group_name):
-        result = tg.join_conversation(group_name)
-        chat_id = result.get('data', {}).get('id', 0)
-        if result.get('result', 'Failed') == 'Failed':
-            update_info = {
-                'status': TgGroup.StatusType.JOIN_FAIL
-            }
-        else:
-            update_info = {
-                'status': TgGroup.StatusType.JOIN_SUCCESS,
-                'chat_id': chat_id
-            }
-        TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.NOT_JOIN).update(update_info)
