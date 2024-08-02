@@ -6,6 +6,11 @@ from jd.services.spider.telegram_spider import TelegramAPIs
 
 
 class TgService:
+    STATUS_MAP = {
+        TgGroup.StatusType.NOT_JOIN: '未加入',
+        TgGroup.StatusType.JOIN_SUCCESS: '已加入',
+        TgGroup.StatusType.JOIN_FAIL: '加入失败'
+    }
 
     @classmethod
     def init_tg(cls):

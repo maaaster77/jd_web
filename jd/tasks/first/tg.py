@@ -10,12 +10,12 @@ from jd.services.spider.tg import TgService
 
 @celery.task
 def join_group(group_name):
-    tg_group = TgGroup.query.filter(TgGroup.group_name == group_name).first()
+    tg_group = TgGroup.query.filter(TgGroup.name == group_name).first()
     if tg_group:
         if tg_group.status == TgGroup.StatusType.JOIN_SUCCESS:
             return
     else:
-        db.session.add(TgGroup(group_name=group_name))
+        db.session.add(TgGroup(name=group_name))
         db.session.commit()
     tg = TgService.init_tg()
 

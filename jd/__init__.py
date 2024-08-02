@@ -19,6 +19,10 @@ class Application(Flask):
         config_file = os.path.abspath(os.path.join(JD_ROOT, '../config.py'))
         print(f'loading configuration:{config_file}')
         self.config.from_pyfile(config_file)
+        local_config = os.path.abspath(os.path.join(JD_ROOT, '../config_local.py'))
+        if os.path.exists(local_config):
+            print('loading local config: %s' % local_config)
+            self.config.from_pyfile(local_config)
         self.template_folder = os.path.abspath(os.path.join(JD_ROOT, '../templates'))
         self.static_folder = os.path.abspath(os.path.join(JD_ROOT, '../static'))
         self.secret_key = self.config.get('SESSION_SECRET_KEY')

@@ -5,6 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from jd import app
+
+
 class BaiduSpider:
 
     def __init__(self):
@@ -69,18 +71,17 @@ class BaiduSpider:
     def _parse_result(self, page, html):
         soup = BeautifulSoup(html, 'html.parser')
         result_list = soup.find_all(class_='result c-container xpath-log new-pmd')
-        data = []
+        d = []
         for result in result_list:
-            title = result.find('a').text
-            content = result.text.replace('\n', '')
-            data.append({
-                # 'content': f"<< {title} >> {content}",
-                'content': content,
-                'page': page,
-                'keyword': self._wd
-            })
-        print('共查询到{}个结果'.format(len(data)))
-        return data
+            content = result.text.replace('\n', '').replace(' ', '')
+            d.append(content)
+        print('共查询到{}个结果'.format(len(d)))
+        content = ' '.join(d)
+        return {
+            'content': content,
+            'page': page,
+            'keyword': self._wd
+        }
 
     def search_query(self, query='', page=1):
         if not query:
