@@ -74,10 +74,15 @@ python web.py
 ### 运行某个脚本
 ```shell
 python -m scripts.job test
-
 ```
 
-### tg初始化，用户生成session文件，tg操作前请先操作该命令
+### 获取Tg配置, 获取api_id、api_hash,并在config.py中配置
+```shell
+https://my.telegram.org/auth
+```
+
+
+### tg初始化，用户生成session文件，tg操作前请先操作该命令，生成的session文件在static/utils目录下
 ```shell
 python -m scripts.job init_tg
 ```
