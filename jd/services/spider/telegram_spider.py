@@ -24,7 +24,7 @@ class TelegramSpider:
 
     def _send_request(self):
         try:
-            r = requests.get(self._url, headers=self._headers, proxies=self._proxies)
+            r = requests.get(self._url, headers=self._headers, proxies=self._proxies, timeout=10)
             html = r.text
             status_code = r.status_code
             if status_code != 200:

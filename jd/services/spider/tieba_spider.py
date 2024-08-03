@@ -70,11 +70,11 @@ class TiebaSpider:
             res_content.append(f'{title} {content}')
         print('共查询到{}个结果'.format(len(res_content)))
         res_content = ' '.join(res_content)
-        return {
+        return [{
             'content': res_content,
             'page': page,
             'keyword': self._q
-        }
+        }]
 
     def search_query(self, query='', page=1):
         if not query:
@@ -94,5 +94,5 @@ class TiebaSpider:
 if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     tieba_spider = TiebaSpider()
-    for data in tieba_spider.search_query('老师', 1):
+    for data in tieba_spider.search_query('出台', 1):
         print(data)

@@ -83,7 +83,8 @@ def black_keyword_delete():
 def black_keyword_search():
     args = request.json
     search_type = get_or_exception('search_type', args, 'int', default=1)
-    if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE, KeywordSearch.SearchType.TELEGRAM]:
+    if search_type not in [KeywordSearch.SearchType.BAIDU, KeywordSearch.SearchType.GOOGLE,
+                           KeywordSearch.SearchType.TELEGRAM, KeywordSearch.SearchType.TIEBA]:
         raise APIException('搜索类型错误')
     if search_type == KeywordSearch.SearchType.TELEGRAM:
         # 抓群组内的最近用户
@@ -187,6 +188,31 @@ def black_keyword_search_result_tag_update():
     for tag_id in tag_id_list:
         obj = KeywordSearchParseResultTag(parse_id=parse_id, tag_id=tag_id)
         db.session.add(obj)
+    db.session.commit()
+    return success()
+
+
+@api.route('/black_keyword/result/update', methods=['POST'])
+def black_keyword_search_result_update():
+    args = request.json
+    parse_id = get_or_exception('parse_id', args, 'int')
+    tag_id_list = get_or_exception('tag_id_list', args, 'str', '')
+    account = get_or_exception('account', args, 'str', '')
+    url = get_or_exception('url', args, 'str', '')
+    desc = get_or_exception('desc', args, 'str', '')
+    if tag_id_list:
+        tag_id_list = tag_id_list.split(',')
+        tag_id_list = [int(t) for t in tag_id_list]
+    KeywordSearchParseResultTag.query.filter(KeywordSearchParseResultTag.parse_id == parse_id).delete()
+    for tag_id in tag_id_list:
+        obj = KeywordSearchParseResultTag(parse_id=parse_id, tag_id=tag_id)
+        db.session.add(obj)
+    update_info = {
+        'account': account,
+        'url': url,
+        'desc': desc
+    }
+    KeywordSearchParseResult.query.filter(KeywordSearchParseResult.id == parse_id).update(update_info)
     db.session.commit()
     return success()
 

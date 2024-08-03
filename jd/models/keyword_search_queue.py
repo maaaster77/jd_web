@@ -20,5 +20,7 @@ class KeywordSearchQueue(db.Model):
     class SearchType:
         BAIDU = 1
         GOOGLE = 2
+        TELEGRAM = 3
+        TIEBA = 4
 
 
