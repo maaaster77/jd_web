@@ -77,11 +77,11 @@ class BaiduSpider:
             d.append(content)
         print('共查询到{}个结果'.format(len(d)))
         content = ' '.join(d)
-        return {
+        return [{
             'content': content,
             'page': page,
             'keyword': self._wd
-        }
+        }]
 
     def search_query(self, query='', page=1):
         if not query:

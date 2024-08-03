@@ -6,6 +6,7 @@ from jd.models.keyword_search import KeywordSearch
 from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.services.spider.baidu_spider import BaiduSpider
 from jd.services.spider.google_spider import GoogleSpider
+from jd.services.spider.tieba_spider import TiebaSpider
 
 
 class SpiderSearchService:
@@ -17,7 +18,9 @@ class SpiderSearchService:
 
     SEARCH_ENGINE_MAP = {
         KeywordSearchQueue.SearchType.BAIDU: '百度',
-        KeywordSearchQueue.SearchType.GOOGLE: '谷歌'
+        KeywordSearchQueue.SearchType.GOOGLE: '谷歌',
+        KeywordSearchQueue.SearchType.TIEBA: '贴吧',
+        KeywordSearchQueue.SearchType.TELEGRAM: 'TELEGRAM'
     }
 
     @classmethod
@@ -26,6 +29,8 @@ class SpiderSearchService:
             return BaiduSpider()
         if search_type == KeywordSearch.SearchType.GOOGLE:
             return GoogleSpider()
+        if search_type == KeywordSearch.SearchType.TIEBA:
+            return TiebaSpider()
 
     @classmethod
     def add_search_to_db(cls, batch_id: str, search_type: int, keyword: str, result: str, page: int):

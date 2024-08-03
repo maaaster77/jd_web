@@ -84,7 +84,7 @@
                 <table class="table table-striped table-hover">
                     <thead>
                     <tr>
-                        <th scope="col"  style="width: 30px;"><input type="checkbox" id="select-all"></th>
+                        <th scope="col" style="width: 30px;"><input type="checkbox" id="select-all"></th>
                         <!-- <th scope="col" style="width: 100px">序号</th> -->
                         <th scope="col" style="width: 100px">ACCOUNT</th>
                         <th scope="col" style="width: 100px">关键词</th>
@@ -107,6 +107,8 @@
                             <td style="width: 100px">
                                 <a href="#" class="btn btn-sm  btn-primary edit-tag"
                                    data-parse-id="{{ word.id }}" data-parse-tag="{{ word.tag_id_list }}"
+                                   data-parse-account="{{ word.account }}" data-parse-url="{{ word.url }}"
+                                   data-parse-desc="{{ word.desc }}"
                                    data-bs-toggle="modal"
                                    data-bs-target="#editRoleModal">编辑</a>
                                 <a href="{{ url_for('api.black_keyword_search_result_delete', parse_id=word.id) }}"
@@ -144,6 +146,7 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
+
                                         {{ url_for('api.black_keyword_search_result', page=current_page+1, page_size=page_size, search_keyword=search_keyword, search_tag=search_tag) }}">下一页</a>
                             </li>
                         {% else %}
@@ -160,12 +163,24 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editRoleModalLabel">编辑标签</h5>
+                            <h5 class="modal-title" id="editRoleModalLabel">编辑结果</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <!-- Form to select tags -->
                             <form id="editRoleForm">
+                                <div class="mb-3">
+                                    <label for="edit_parse_account" class="form-label">ACCOUNT</label>
+                                    <input type="text" class="form-control" id="edit_parse_account">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_parse_url" class="form-label">URL</label>
+                                    <input type="text" class="form-control" id="edit_parse_url">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_parse_desc" class="form-label">描述</label>
+                                    <textarea class="form-control" id="edit_parse_desc" rows="3"></textarea>
+                                </div>
                                 <div class="mb-3">
                                     <input type="text" style="display: none;" class="form-control" id="edit_parse_id"
                                            name="edit_parse_id"
@@ -299,6 +314,12 @@
             $('#tagSelect').selectpicker('val', tag_list);
             const parse_id = $(this).data('parse-id');
             $('#edit_parse_id').val(parse_id);
+            const parse_url = $(this).data('parse-url');
+            $('#edit_parse_url').val(parse_url);
+            const parse_account = $(this).data('parse-account');
+            $('#edit_parse_account').val(parse_account);
+            const parse_desc = $(this).data('parse-desc');
+            $('#edit_parse_desc').val(parse_desc);
             $('#editRoleModal').modal('show');
         });
 
@@ -306,6 +327,9 @@
             var $tagSelect = $('#tagSelect');
             var selectedTags = $tagSelect.val();
             var parse_id = $('#edit_parse_id').val();
+            var parse_url = $('#edit_parse_url').val();
+            var parse_desc = $('#edit_parse_desc').val();
+            var parse_account = $('#edit_parse_account').val();
             console.log('parse id:', parse_id)
             console.log('select tags:', selectedTags)
             $('.selectpicker').selectpicker('val', ['noneSelectedText']);
@@ -314,9 +338,9 @@
             // Update user tags on server
             $.ajax({
                 type: 'POST',
-                url: '{{ url_for("api.black_keyword_search_result_tag_update") }}',
+                url: '{{ url_for("api.black_keyword_search_result_update") }}',
                 contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({parse_id: parse_id, tag_id_list: selectedTags.join(',')}), // Convert array back to comma-separated string
+                data: JSON.stringify({parse_id: parse_id, tag_id_list: selectedTags.join(','), account: parse_account, desc: parse_desc, url:parse_url}), // Convert array back to comma-separated string
                 success: function (response) {
                     $('#editRoleModal').modal('hide');
                     location.reload(false);

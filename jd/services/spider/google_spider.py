@@ -72,7 +72,7 @@ class GoogleSpider:
             wait_seconds = random.uniform(1, 2)
             time.sleep(wait_seconds)
             try:
-                r = requests.get(self._url, headers=self._headers, params=self._params, proxies=self._proxies)
+                r = requests.get(self._url, headers=self._headers, params=self._params, proxies=self._proxies, timeout=20)
                 html = r.text
                 status_code = r.status_code
                 if status_code != 200:

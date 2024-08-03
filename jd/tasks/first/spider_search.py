@@ -24,7 +24,7 @@ def deal_spider_search(batch_id: str, search_type: int = 1):
                 SpiderSearchService.add_search_to_db(batch_id, search_type, q.keyword, result, page)
             db.session.commit()
         # TODO:爬虫打开的时候注释掉
-        time.sleep(50)
+        # time.sleep(50)
         KeywordSearchQueue.query.filter_by(batch_id=batch_id, status=KeywordSearchQueue.StatusType.PROCESSING).update(
             {'status': KeywordSearchQueue.StatusType.PROCESSED})
         db.session.commit()
