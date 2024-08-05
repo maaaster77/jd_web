@@ -1,6 +1,8 @@
 import collections
+from io import BytesIO
 
-from flask import jsonify, request, render_template, redirect, url_for
+import pandas as pd
+from flask import jsonify, request, render_template, redirect, url_for, make_response
 
 from jd import db
 from jd.models.black_keyword import BlackKeyword
@@ -267,3 +269,78 @@ def black_keyword_search_queue_list():
             'created_at': q.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         })
     return render_template('search_queue.html', data=data, total_pages=1, current_page=1)
+
+
+@api.route('/black_keyword/result/download', methods=['GET'])
+def black_keyword_search_result_download():
+    tags = ResultTag.query.filter_by(status=ResultTag.StatusType.VALID).all()
+    tag_list = [{
+        'id': row.id,
+        'name': row.title,
+    } for row in tags]
+    args = request.args or request.form
+    search_keyword = get_or_exception('search_keyword', args, 'str', '')
+    search_tag = args.getlist('search_tag', int)
+    parse_id_list = []
+    if search_tag:
+        # 标签是与关系
+        default_tag_id_list = search_tag
+        parse_tag_list = KeywordSearchParseResultTag.query.filter(
+            KeywordSearchParseResultTag.tag_id.in_(search_tag)).all()
+        result_p_id_list = [t.parse_id for t in parse_tag_list]
+        parse_tag_list = KeywordSearchParseResultTag.query.filter(
+            KeywordSearchParseResultTag.parse_id.in_(result_p_id_list)).all()
+        group_result = collections.defaultdict(list)
+        for tag in parse_tag_list:
+            group_result[tag.parse_id].append(tag.tag_id)
+        for p_id, t_list in group_result.items():
+            if set(t_list) == set(search_tag):
+                parse_id_list.append(p_id)
+        if not parse_id_list:
+            return render_template('search_result.html', data=[], total_pages=1, current_page=1,
+                                   tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
+                                   default_tag_id_list=default_tag_id_list)
+
+    query = KeywordSearchParseResult.query.filter(
+        KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)
+    if search_keyword:
+        query = query.filter(KeywordSearchParseResult.keyword.like(f'%{search_keyword}%'))
+    if parse_id_list:
+        query = query.filter(KeywordSearchParseResult.id.in_(parse_id_list))
+    parse_result = query.order_by(KeywordSearchParseResult.id.desc()).all()
+    parse_id_list = [row.id for row in parse_result]
+    parse_tag_list = KeywordSearchParseResultTag.query.filter(
+        KeywordSearchParseResultTag.parse_id.in_(parse_id_list)).all()
+    parse_tag_result = collections.defaultdict(list)
+    for p in parse_tag_list:
+        parse_tag_result[p.parse_id].append(str(p.tag_id))
+
+    tag_dict = {t['id']: t['name'] for t in tag_list}
+
+    data = []
+    for row in parse_result:
+        parse_tag = parse_tag_result.get(row.id, [])
+        tag_text = ','.join([tag_dict.get(int(t), '') for t in parse_tag if tag_dict.get(int(t), '')])
+        data.append({
+            '关键词': row.keyword,
+            'URL': str(row.url),
+            'ACCOUNT': str(row.account),
+            'DESC': row.desc,
+            '标签': tag_text,
+        })
+
+    # 创建DataFrame
+    columns = ['关键词', 'URL', 'ACCOUNT', 'DESC', '标签']
+    df = pd.DataFrame(data, columns=columns)
+
+    # 将DataFrame保存到Excel文件
+    output = BytesIO()
+    df.to_csv(output, index=False, encoding='utf-8')
+
+    # 设置响应头
+    output.seek(0)
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=account.csv"
+    response.headers["Content-type"] = "text/csv"
+
+    return response

@@ -29,3 +29,4 @@ flower==2.0.1
 
 Telethon==1.36.0
 Pillow==9.5.0
+openpyxl==3.1.3

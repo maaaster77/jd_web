@@ -67,6 +67,23 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="start_date" class="me-2">开始时间:</label>
+                            <input style="width: 150px" type="date" class="form-control" id="start_date"
+                                   name="start_date"
+                                   value="{{ default_start_date | default('') }}">
+                        </div>
+                    </div>
+                    <!-- 新增时间选择器 -->
+                    <div class="col-md-3">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="end_date" class="me-2">结束时间:</label>
+                            <input style="width: 150px" type="date" class="form-control" id="end_date" name="end_date"
+                                   value="{{ default_end_date | default('') }}">
+                        </div>
+                    </div>
                     <div class="col-md-3">
                         <div class="form-group d-flex align-items-center">
                             <label for="search_content" class="me-2" style="width: 50px;">内容:</label>
@@ -78,6 +95,9 @@
                         <button type="submit" class="btn btn-sm  btn-primary">查询</button>
                         <a href="{{ url_for('api.tg_chat_room_history') }}" class="btn btn-sm btn-success"
                            style="margin-left: 10px">重置</a>
+                        <a href="{{ url_for('api.tg_chat_room_history_download', **request.args.to_dict()) }}"
+                           class="btn btn-sm btn-secondary"
+                           style="margin-left: 10px">下载</a>
                     </div>
                 </div>
             </form>
@@ -105,10 +125,12 @@
                             <td style="width: 100px">{{ word.username }}</td>
                             <td style="width: 100px">{{ word.nickname }}</td>
                             <td style="width: 200px">{{ word.message }}
-                                {% if word.photo_path %}
-                                    <img style="width: 65px; height: 100px"
-                                         src="{{ url_for('static', filename=word.photo_path) }}" alt="">
-                                {% endif %}
+                                {% for photo in word.photo_paths %}
+                                    {% if photo %}
+                                        <img style="width: 65px; height: 100px"
+                                             src="{{ url_for('static', filename=photo) }}" alt="">
+                                    {% endif %}
+                                {% endfor %}
 
                             </td>
                             <td style="width: 100px">{{ word.postal_time }}</td>
@@ -136,14 +158,17 @@
                                 <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
                             {% else %}
                                 <li class="page-item"><a class="page-link"
-                                                         href="{{ url_for('api.tg_chat_room_history', page=page, page_size=page_size, search_group_id=default_chat_id, search_user_id=default_user_id, search_content=default_search_content) }}">{{ page }}</a>
+                                                         href="{{ url_for('api.tg_chat_room_history', page=page, page_size=page_size, search_group_id=default_chat_id, search_user_id=default_user_id, search_content=default_search_content, start_date=default_start_date, end_date=default_end_date) }}">{{ page }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
 
                         {% if current_page < total_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content) }}">下一页</a>
+                                <a class="page-link" href="
+
+
+                                        {{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content,start_date=default_start_date, end_date=default_end_date) }}">下一页</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled">
