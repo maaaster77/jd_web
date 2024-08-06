@@ -41,7 +41,11 @@ class TgService:
         #     proxy_ip = proxy.get("ip", "127.0.0.1")
         #     proxy_port = proxy.get("port", 7890)
         #     clash_proxy = (protocal, proxy_ip, proxy_port)
-        tg.init_client(
-            session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
-        )
+        try:
+            tg.init_client(
+                session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
+            )
+        except Exception as e:
+            logger.info(e)
+            return None
         return tg

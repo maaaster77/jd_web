@@ -60,9 +60,13 @@ bash stop.sh
 
 ```
 
-### 运行celery
+### 运行爬虫celery
 ```shell
 celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info
+```
+### 运行tg celery
+```shell
+celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info
 ```
 
 
