@@ -15,7 +15,7 @@ class TgChatHistoryJob:
         if not chat_room_list:
             return
 
-        tg = TgService.init_tg()
+        tg = TgService.init_tg('job')
 
         async def fetch_chat_history(group_name, chat_id):
             chat_id = int(chat_id)

@@ -4,6 +4,7 @@ from jCelery import celery
 from jd import db, app
 from jd.models.keyword_search import KeywordSearch
 from jd.models.keyword_search_parse_result import KeywordSearchParseResult
+from jd.models.tg_group import TgGroup
 from jd.services.spider.telegram_spider import TelegramSpider
 from jd.tasks.first.tg import join_group
 from utils.search_filter import find_accounts
@@ -62,7 +63,7 @@ def parse_search_result(batch_id: str):
                     elif 'subscribers' in data['account'] or 'members' in data['account'] or 'online' in data['account']:
                         desc = 'Telegram群组账户'
                         # 加入群组
-                        join_group.delay(telegram_account)
+                        join_group(telegram_account)
                     else:
                         # desc = 'Telegram其他类型账户'
                         continue
@@ -80,6 +81,7 @@ def parse_search_result(batch_id: str):
                     url = f'{phone_number}'
                     add_or_update_keyword_search_result(account=phone_number, keyword=search_result.keyword, url=url,
                                                         desc=desc)
+            db.session.commit()
         KeywordSearch.query.filter_by(id=search_result.id, status=KeywordSearch.StatusType.PROCESSING).update(
             {'status': KeywordSearch.StatusType.PROCESSED})
         db.session.commit()

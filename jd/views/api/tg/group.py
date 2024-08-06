@@ -38,6 +38,6 @@ def tg_group_add():
     obj = TgGroup(name=name)
     db.session.add(obj)
     db.session.commit()
-    join_group.delay(name)
+    join_group.delay(name, 'web')
 
     return redirect(url_for('api.tg_group_list'))

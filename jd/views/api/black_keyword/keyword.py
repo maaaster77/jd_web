@@ -90,7 +90,7 @@ def black_keyword_search():
         raise APIException('搜索类型错误')
     if search_type == KeywordSearch.SearchType.TELEGRAM:
         # 抓群组内的最近用户
-        fetch_group_recent_user_info.delay()
+        fetch_group_recent_user_info.delay('web')
     else:
         keyword_id_list = get_or_exception('keywords', args, 'str')
         keyword_id_list = [int(k) for k in keyword_id_list.split(',')]

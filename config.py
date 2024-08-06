@@ -26,6 +26,9 @@ TG_CONFIG = {
     "api_id": "",
     "api_hash": "",
     "session_name": "jd.session",
+    "celery_session_name": "jd_celery.session",
+    "web_session_name": "jd_web.session",
+    "job_session_name": "jd_job.session",
     "sqlite_db_name": "jd_tg.db",
     "proxy": {
         "protocal": "socks5",
