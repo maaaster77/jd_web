@@ -14,3 +14,4 @@ class TgGroup(db.Model):
         NOT_JOIN = 0
         JOIN_SUCCESS = 1
         JOIN_FAIL = 2
+        JOIN_ONGOING = 3

@@ -12,7 +12,7 @@ from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInv
 from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch, \
     ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent
 
-from jd import app, JD_ROOT
+from jd import app
 
 
 class TelegramSpider:

@@ -1,4 +1,5 @@
 import json
+import logging
 
 from jCelery import celery
 from jd import app, db
@@ -7,41 +8,54 @@ from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.services.spider.telegram_spider import TelegramSpider
 from jd.services.spider.tg import TgService
 
+logger = logging.getLogger(__name__)
+
 
 @celery.task
-def join_group(group_name):
-    tg_group = TgGroup.query.filter(TgGroup.name == group_name).first()
-    if tg_group:
-        if tg_group.status == TgGroup.StatusType.JOIN_SUCCESS:
-            return
-    else:
-        db.session.add(TgGroup(name=group_name))
-        db.session.commit()
-    tg = TgService.init_tg()
+def join_group(group_name, origin='celery'):
+    print(f'{group_name} join...')
+    try:
+        tg = TgService.init_tg(origin)
+    except Exception as e:
+        logger.info(f'{group_name}, join_group error: {e}')
+        return
 
     async def join():
-        result = await tg.join_conversation(group_name)
-        chat_id = result.get('data', {}).get('id', 0)
-        if result.get('result', 'Failed') == 'Failed':
-            update_info = {
-                'status': TgGroup.StatusType.JOIN_FAIL
-            }
-        else:
-            update_info = {
-                'status': TgGroup.StatusType.JOIN_SUCCESS,
-                'chat_id': chat_id
-            }
-        TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.NOT_JOIN).update(update_info)
-        db.session.commit()
+        try:
+            tg_group = TgGroup.query.filter(TgGroup.name == group_name).first()
+            if not tg_group:
+                db.session.add(TgGroup(name=group_name))
+                db.session.commit()
+            if TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.NOT_JOIN).update(
+                    {'status': TgGroup.StatusType.JOIN_ONGOING}) <= 0:
+                db.session.rollback()
+                return
+            result = await tg.join_conversation(group_name)
+            chat_id = result.get('data', {}).get('id', 0)
+            if result.get('result', 'Failed') == 'Failed':
+                update_info = {
+                    'status': TgGroup.StatusType.JOIN_FAIL
+                }
+            else:
+                update_info = {
+                    'status': TgGroup.StatusType.JOIN_SUCCESS,
+                    'chat_id': chat_id
+                }
+            TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
+            db.session.commit()
+        except Exception as e:
+            logger.info('join_group error: {}'.format(e))
+            db.session.rollback()
 
     with tg.client:
         tg.client.loop.run_until_complete(join())
 
 
 @celery.task
-def fetch_group_user_info(chat_id, user_id, nick_name, username):
+def fetch_group_user_info(chat_id, user_id, nick_name, username, origin='celery'):
     """
     获取群组用户的信息
+    :param origin:
     :param nick_name:
     :param chat_id:
     :param user_id:
@@ -66,7 +80,7 @@ def fetch_group_user_info(chat_id, user_id, nick_name, username):
         db.session.flush()
         db.session.commit()
     else:
-        tg = TgService.init_tg()
+        tg = TgService.init_tg(origin)
 
         async def get_chat_room_user_info(nickname):
             nickname = nickname.split(' ')
@@ -93,8 +107,8 @@ def fetch_group_user_info(chat_id, user_id, nick_name, username):
 
 
 @celery.task
-def fetch_group_recent_user_info():
-    tg = TgService.init_tg()
+def fetch_group_recent_user_info(origin='celery'):
+    tg = TgService.init_tg(origin)
 
     async def get_chat_room_user_info(chat_id, group_name):
         join_result = await tg.join_conversation(group_name)
@@ -119,3 +133,8 @@ def fetch_group_recent_user_info():
             tg.client.loop.run_until_complete(get_chat_room_user_info(int(group.chat_id), group.name))
 
     return f'fetch recent users finished'
+
+
+if __name__ == '__main__':
+    app.ready(db_switch=True, web_switch=False, worker_switch=True)
+    join_group('ulae4888')
