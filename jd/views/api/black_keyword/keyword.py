@@ -14,7 +14,7 @@ from jd.models.result_tag import ResultTag
 from jd.models.tg_group import TgGroup
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import deal_spider_search
-from jd.tasks.first.tg import fetch_group_recent_user_info
+from jd.tasks.telegram.tg import fetch_group_recent_user_info
 from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 

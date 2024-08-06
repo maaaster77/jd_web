@@ -167,3 +167,5 @@ log/
 /static/utils
 
 /config_local.py
+
+flower_db.db

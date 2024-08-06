@@ -3,6 +3,7 @@ result_backend = 'redis://127.0.0.1:6379/1'
 # 三个队列
 task_routes = {
     'jd.tasks.first.*': {'queue': 'jd.celery.first'},  # 优先级高队列
+    'jd.tasks.telegram.*': {'queue': 'jd.celery.telegram'},  # tg队列
 }
 # 默认队列
 task_default_queue = 'jd.tasks.first'

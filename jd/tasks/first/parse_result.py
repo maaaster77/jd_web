@@ -6,7 +6,7 @@ from jd.models.keyword_search import KeywordSearch
 from jd.models.keyword_search_parse_result import KeywordSearchParseResult
 from jd.models.tg_group import TgGroup
 from jd.services.spider.telegram_spider import TelegramSpider
-from jd.tasks.first.tg import join_group
+from jd.tasks.telegram.tg import join_group
 from utils.search_filter import find_accounts
 
 
@@ -46,6 +46,7 @@ def parse_search_result(batch_id: str):
                 {'status': KeywordSearch.StatusType.PROCESSED})
             db.session.commit()
             continue
+        telegram_group_list = []
         for account_type, account_list in accounts_dict.items():
             if account_type == 'telegram_number':
                 for telegram_account in account_list:
@@ -62,8 +63,7 @@ def parse_search_result(batch_id: str):
                         desc = f'username:{data["username"]}, desc:{data["desc"]}'
                     elif 'subscribers' in data['account'] or 'members' in data['account'] or 'online' in data['account']:
                         desc = 'Telegram群组账户'
-                        # 加入群组
-                        join_group(telegram_account)
+                        telegram_group_list.append(telegram_account)
                     else:
                         # desc = 'Telegram其他类型账户'
                         continue
@@ -81,10 +81,12 @@ def parse_search_result(batch_id: str):
                     url = f'{phone_number}'
                     add_or_update_keyword_search_result(account=phone_number, keyword=search_result.keyword, url=url,
                                                         desc=desc)
-            db.session.commit()
         KeywordSearch.query.filter_by(id=search_result.id, status=KeywordSearch.StatusType.PROCESSING).update(
             {'status': KeywordSearch.StatusType.PROCESSED})
         db.session.commit()
+        for telegram_account in telegram_group_list:
+            # 加入群组
+            join_group.delay(telegram_account)
 
     return f'batch:{batch_id} parse search result end'
 

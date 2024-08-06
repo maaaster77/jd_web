@@ -1,4 +1,3 @@
-import json
 import logging
 
 from jCelery import celery
@@ -14,22 +13,16 @@ logger = logging.getLogger(__name__)
 @celery.task
 def join_group(group_name, origin='celery'):
     print(f'{group_name} join...')
-    try:
-        tg = TgService.init_tg(origin)
-    except Exception as e:
-        logger.info(f'{group_name}, join_group error: {e}')
-        return
+    tg = TgService.init_tg(origin)
+    if not tg:
+        logger.info(f'{group_name}, join_group error')
+        return f'{group_name} join group fail'
 
     async def join():
         try:
             tg_group = TgGroup.query.filter(TgGroup.name == group_name).first()
             if not tg_group:
-                db.session.add(TgGroup(name=group_name))
-                db.session.commit()
-            if TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.NOT_JOIN).update(
-                    {'status': TgGroup.StatusType.JOIN_ONGOING}) <= 0:
-                db.session.rollback()
-                return
+                return f'{group_name} join group fail, group not exist'
             result = await tg.join_conversation(group_name)
             chat_id = result.get('data', {}).get('id', 0)
             if result.get('result', 'Failed') == 'Failed':
@@ -49,6 +42,8 @@ def join_group(group_name, origin='celery'):
 
     with tg.client:
         tg.client.loop.run_until_complete(join())
+
+    return f'{group_name} join group success'
 
 
 @celery.task

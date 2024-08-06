@@ -5,7 +5,7 @@ from jd import app, db
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.services.spider.tg import TgService
-from jd.tasks.first.tg import fetch_group_user_info
+from jd.tasks.telegram.tg import fetch_group_user_info
 
 
 class TgChatHistoryJob:
