@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block style %}
+
+{% endblock style %}
+<style>
+    .content-details {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 0.8em;
+    }
+
+    .content-details .detail-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .content-details .detail-row span {
+        border: 1px solid #ccc;
+        padding: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tag-select {
+        height: auto; /* 允许自动调整高度 */
+        max-height: 200px; /* 设置最大高度，以适应屏幕空间 */
+        overflow-y: auto; /* 当内容超出时显示垂直滚动条 */
+    }
+</style>
+
+{% block content %}
+    <div class="container mt-5">
+        <h3 class="mb-4">化工产品</h3>
+
+        <div class="card mb-3 mt-4">
+            <div class="card-header">
+                产品列表
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="searchEngine" id="searchEngineMolbase"
+                           value="1" checked>
+                    <label class="form-check-label" for="searchEngineMolbase">摩贝</label>
+                </div>
+                <a href="#" class="btn btn-sm  btn-primary search_keyword">信息抓取</a>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+{#                        <th scope="col" style="width: 50px">序号</th>#}
+                        <th scope="col" style="width: 80px">平台</th>
+                        <th scope="col" style="width: 200px">产品名称</th>
+                        <th scope="col" style="width: 200px">化合物名称</th>
+                        <th scope="col" style="width: 150px">商家名称</th>
+                        <th scope="col" style="width: 140px">联系方式</th>
+                        <th scope="col" style="width: 150px">拉取时间</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for word in data %}
+                        <tr>
+{#                            <td style="width: 50px">{{ word.id }}</td>#}
+                            <td style="width: 80px">{{ word.platform_name }}</td>
+                            <td style="width: 200px">{{ word.product_name }}</td>
+                            <td style="width: 200px">{{ word.compound_name }}</td>
+                            <td style="width: 150px">{{ word.seller_name }}</td>
+                            <td style="width: 140px">{{ word.contact_number }}</td>
+                            <td style="width: 150px">{{ word.created_at }}</td>
+                            <td><a href="{{ url_for('api.chemical_product_info_delete', id=word.id) }}"
+                                   class="btn btn-sm btn-danger delete-user"
+                                   onclick="return confirm('确定删除该产品吗？')">删除</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    {% if current_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ url_for('api.chemical_product_info_list', page=current_page-1, page_size=page_size) }}"
+                               tabindex="-1" aria-disabled="true">上一页</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+                        </li>
+                    {% endif %}
+
+                    {% for page in range(1, total_pages+1) %}
+                        {% if page == current_page %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link"
+                                                     href="{{ url_for('api.chemical_product_info_list', page=page, page_size=page_size) }}">{{ page }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if current_page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('api.chemical_product_info_list', page=current_page+1, page_size=page_size) }}">下一页</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">下一页</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <!-- Add tag Modal -->
+            <div class="modal fade" id="addTagModal" tabindex="-1" aria-labelledby="addTagModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addTagModalLabel">新增标签</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="addResultForm" action="{{ url_for('api.tag_add') }}" method="POST">
+                            <div class="modal-body">
+                                <!-- Form to add new result -->
+                                <div class="mb-3">
+                                    <label for="addTag" class="form-label">名称</label>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="输入名称"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="submit" class="btn btn-primary" id="addTagResult">保存</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+{% endblock content %}
+
+{% block script %}
+
+    <script>
+        $(document).on('click', '.search_keyword', function (e) {
+            const platform_id = $('input[name="searchEngine"]:checked').val();
+            $.ajax({
+                url: "{{ url_for('api.chemical_product_info_search') }}",
+                type: "post",
+                data: JSON.stringify({platform_id: platform_id}),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    alert('搜索中，请稍后...');
+                },
+                error: function (error) {
+                    // 处理错误情况
+                    console.error("Error:", error);
+                }
+            });
+
+        })
+    </script>
+
+{% endblock script %}
