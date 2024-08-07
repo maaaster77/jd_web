@@ -86,7 +86,7 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         TgGroupChatHistory.chat_id,
         TgGroupChatHistory.user_id,
         TgGroupChatHistory.postal_time
-    ).having(func.group_concat(TgGroupChatHistory.photo_path).label('photo_paths') != '')
+    )
 
     if start_date and end_date:
         f_start_date = start_date + ' 00:00:00'
