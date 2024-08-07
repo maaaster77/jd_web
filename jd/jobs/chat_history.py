@@ -1,4 +1,5 @@
 import datetime
+import logging
 import time
 
 from jd import app, db
@@ -6,6 +7,8 @@ from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.services.spider.tg import TgService
 from jd.tasks.telegram.tg import fetch_group_user_info
+
+logger = logging.getLogger(__name__)
 
 
 class TgChatHistoryJob:
@@ -19,14 +22,20 @@ class TgChatHistoryJob:
 
         async def fetch_chat_history(group_name, chat_id):
             chat_id = int(chat_id)
-            chat = await tg.get_dialog(chat_id)
+            try:
+                chat = await tg.get_dialog(chat_id)
+            except Exception as e:
+                logger.info(f'{group_name}, 未获取到群组，准备重新加入...{e}')
+                chat = None
             if not chat:
                 result = await tg.join_conversation(group_name)
                 chat_id = result.get('data', {}).get('id', 0)
                 if not chat_id:
+                    logger.info(f'{group_name}, 未获取到群组id')
                     return
                 chat = await tg.get_dialog(chat_id)
                 if not chat:
+                    logger.info(f'{group_name}, 未加入到到群组')
                     return
             param = {
                 "limit": 60,
@@ -39,7 +48,7 @@ class TgChatHistoryJob:
                 history_list.append(data)
             history_list.reverse()
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
-            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list)).all()
+            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list), TgGroupChatHistory.chat_id == str(chat_id)).all()
             already_message_id_list = [data.message_id for data in msg]
             for data in history_list:
                 message_id = str(data.get("message_id", 0))
