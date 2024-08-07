@@ -101,5 +101,5 @@ class MolbaseSpider:
 if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     m_spider = MolbaseSpider()
-    for data in m_spider.search_query():
+    for data in m_spider.search_query(page=1):
         print(data)

@@ -9,11 +9,16 @@ from jd.services.spider.mobei_spider import MolbaseSpider
 def deal_spider_chemical(platform_id):
     if platform_id == ChemicalPlatformService.PLATFORM_MOLBASE:
         m_spider = MolbaseSpider()
-        for data in m_spider.search_query():
+        for data in m_spider.search_query(page=10):
             print('data', data)
+            if ChemicalPlatformProductInfo.query.filter(
+                    ChemicalPlatformProductInfo.product_name == data['product_name'],
+                    platform_id == platform_id).first():
+                continue
             obj = ChemicalPlatformProductInfo(platform_id=platform_id, product_name=data['product_name'],
                                               compound_name=data['compound_name'], seller_name=data['seller_name'],
                                               contact_number=data['contact_number'])
             db.session.add(obj)
+            db.session.flush()
 
     db.session.commit()
