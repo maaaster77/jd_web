@@ -130,8 +130,8 @@ class GuideChemSpider:
             contact_number = contact_number_div.text
 
             return {
-                'product_name': product_name,
-                'compound_name': compound_name,
+                'product_name': product_name.replace('\r', '').replace('\n', '').replace(' ', ''),
+                'compound_name': compound_name.replace('\r', '').replace('\n', ''),
                 'seller_name': seller_name,
                 'contact_number': contact_number,
                 'origin': p_link

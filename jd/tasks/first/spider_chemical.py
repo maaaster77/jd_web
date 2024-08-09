@@ -1,5 +1,5 @@
 from jCelery import celery
-from jd import db
+from jd import db, app
 from jd.models.chemical_platform_product_info import ChemicalPlatformProductInfo
 from jd.services.chemical import ChemicalPlatformService
 from jd.services.spider.mobei_spider import MolbaseSpider
@@ -11,7 +11,7 @@ def deal_spider_chemical(platform_id):
     if not spider:
         return
     i = 0
-    for data in spider.search_query(page=1):
+    for data in spider.search_query(page=app.config['SPIDER_DEFAULT_PAGE']):
         print('data', data)
         if ChemicalPlatformProductInfo.query.filter(
                 ChemicalPlatformProductInfo.product_name == data['product_name'],

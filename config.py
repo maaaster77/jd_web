@@ -36,3 +36,6 @@ TG_CONFIG = {
         "port": 7890
     }
 }
+
+# 默认爬取的页数
+SPIDER_DEFAULT_PAGE = 1

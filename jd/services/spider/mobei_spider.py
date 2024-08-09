@@ -84,10 +84,10 @@ class MolbaseSpider:
                 if first_row:
                     compound_name = first_row.find('td').text
         return {
-            'product_name': title,
+            'product_name': title.replace('\r', '').replace('\n', '').replace(' ', ''),
             'seller_name': seller_name,
             'contact_number': concat,
-            'compound_name': compound_name,
+            'compound_name': compound_name.replace('\r', '').replace('\n', ''),
         }
 
     def search_query(self, page=1):
