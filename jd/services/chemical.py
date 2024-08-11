@@ -1,3 +1,4 @@
+from jd.services.spider.checnbk_spider import ChemBkSpider
 from jd.services.spider.chem960_spider import ChemicalNineSpider
 from jd.services.spider.chemical_book import ChemicalBookSpider
 from jd.services.spider.guide_spider import GuideChemSpider
@@ -13,6 +14,7 @@ class ChemicalPlatformService:
     PLATFORM_CHEMICALNINE = 4  # chemical960
     PLATFORM_HUAYUAN = 5  # 化源
     PLATFORM_ICHEMISTRY = 6  # 爱化学
+    PLATFORM_CHEMBK = 7  # chembk
 
     PLATFORM_MAP = {
         PLATFORM_MOLBASE: '摩贝',
@@ -20,7 +22,9 @@ class ChemicalPlatformService:
         PLATFORM_CHEMICALBOOK: 'chemicalbook',
         PLATFORM_CHEMICALNINE: 'chemical960',
         PLATFORM_HUAYUAN: '化源',
-        PLATFORM_ICHEMISTRY: '爱化学'
+        PLATFORM_ICHEMISTRY: '爱化学',
+        PLATFORM_CHEMBK: 'checmbk'
+
     }
 
     @classmethod
@@ -37,3 +41,5 @@ class ChemicalPlatformService:
             return HuaYuanSpider()
         if platform_id == ChemicalPlatformService.PLATFORM_ICHEMISTRY:
             return IchemistrySpider()
+        if platform_id == ChemicalPlatformService.PLATFORM_CHEMBK:
+            return ChemBkSpider()

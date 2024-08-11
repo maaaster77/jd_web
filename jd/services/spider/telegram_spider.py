@@ -250,9 +250,9 @@ class TelegramAPIs(object):
         :return: 返回json, {'data': [], 'result': 'success/failed', 'reason':''}
         data: list类型，
         """
+        result = []
         async for dialog in self.client.iter_dialogs():
             # 确保每次数据的准确性
-            result_json = {"result": "success", "reason": "ok"}
             chat = dialog.entity
             # if isinstance(chat, Chat):
             #     channel_full = await self.client(GetFullChatRequest(chat.id))
@@ -276,8 +276,8 @@ class TelegramAPIs(object):
                 "user_id": user_id,
                 "unread_count": dialog.unread_count,
             }
-            result_json["data"] = out
-            yield result_json
+            result.append(out)
+        return result
 
     async def get_dialog(self, chat_id, is_more=False):
         """

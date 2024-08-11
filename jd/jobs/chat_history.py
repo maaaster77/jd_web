@@ -20,7 +20,7 @@ class TgChatHistoryJob:
 
         tg = TgService.init_tg('job')
 
-        async def fetch_chat_history(group_name, chat_id):
+        async def fetch_chat_history(group_name, chat_id, chat_type='group'):
             chat_id = int(chat_id)
             try:
                 chat = await tg.get_dialog(chat_id)
@@ -48,7 +48,8 @@ class TgChatHistoryJob:
                 history_list.append(data)
             history_list.reverse()
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
-            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list), TgGroupChatHistory.chat_id == str(chat_id)).all()
+            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list),
+                                                  TgGroupChatHistory.chat_id == str(chat_id)).all()
             already_message_id_list = [data.message_id for data in msg]
             for data in history_list:
                 message_id = str(data.get("message_id", 0))
@@ -71,6 +72,8 @@ class TgChatHistoryJob:
                 db.session.add(obj)
             db.session.commit()
             # 获取用户信息
+            if chat_type != 'group':
+                return
             for data in history_list:
                 user_id = str(data.get("user_id", 0))
                 nickname = data.get("nick_name", "")
@@ -79,10 +82,20 @@ class TgChatHistoryJob:
                     continue
                 fetch_group_user_info.delay(chat_id, user_id, nickname, username)
 
-        for chat_room in chat_room_list:
-            chat_id = chat_room.chat_id
-            with tg.client:
-                tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
+        # # 群组聊天
+        # for chat_room in chat_room_list:
+        #     chat_id = chat_room.chat_id
+        #     with tg.client:
+        #         tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
+
+        async def get_person_dialog_list():
+            chat_list = await tg.get_person_dialog_list()
+            for chat in chat_list:
+                await fetch_chat_history('私人聊天', chat['id'], chat_type='presion')
+
+        # 私人聊天
+        with tg.client:
+            tg.client.loop.run_until_complete(get_person_dialog_list())
 
 
 def run():

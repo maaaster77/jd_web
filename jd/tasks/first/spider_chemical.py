@@ -13,9 +13,11 @@ def deal_spider_chemical(platform_id):
     i = 0
     for data in spider.search_query(page=app.config['SPIDER_DEFAULT_PAGE']):
         print('data', data)
-        if ChemicalPlatformProductInfo.query.filter(
-                ChemicalPlatformProductInfo.product_name == data['product_name'],
-                platform_id == platform_id).first():
+        # if ChemicalPlatformProductInfo.query.filter(
+        #         ChemicalPlatformProductInfo.product_name == data['product_name'],
+        #         platform_id == platform_id).first():
+        #     continue
+        if not data['contact_number']:
             continue
         obj = ChemicalPlatformProductInfo(platform_id=platform_id, product_name=data['product_name'],
                                           compound_name=data['compound_name'], seller_name=data['seller_name'],
