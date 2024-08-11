@@ -2,6 +2,7 @@ from jd.services.spider.chem960_spider import ChemicalNineSpider
 from jd.services.spider.chemical_book import ChemicalBookSpider
 from jd.services.spider.guide_spider import GuideChemSpider
 from jd.services.spider.huayuan_spider import HuaYuanSpider
+from jd.services.spider.ichemistry_spider import IchemistrySpider
 from jd.services.spider.mobei_spider import MolbaseSpider
 
 
@@ -11,13 +12,15 @@ class ChemicalPlatformService:
     PLATFORM_CHEMICALBOOK = 3  # chemicalbook
     PLATFORM_CHEMICALNINE = 4  # chemical960
     PLATFORM_HUAYUAN = 5  # 化源
+    PLATFORM_ICHEMISTRY = 6  # 爱化学
 
     PLATFORM_MAP = {
         PLATFORM_MOLBASE: '摩贝',
         PLATFORM_GUIDECHEM: '盖德',
         PLATFORM_CHEMICALBOOK: 'chemicalbook',
         PLATFORM_CHEMICALNINE: 'chemical960',
-        PLATFORM_HUAYUAN: '化源'
+        PLATFORM_HUAYUAN: '化源',
+        PLATFORM_ICHEMISTRY: '爱化学'
     }
 
     @classmethod
@@ -32,3 +35,5 @@ class ChemicalPlatformService:
             return ChemicalNineSpider()
         if platform_id == ChemicalPlatformService.PLATFORM_HUAYUAN:
             return HuaYuanSpider()
+        if platform_id == ChemicalPlatformService.PLATFORM_ICHEMISTRY:
+            return IchemistrySpider()

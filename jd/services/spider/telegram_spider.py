@@ -9,8 +9,9 @@ from telethon import TelegramClient
 from telethon.tl.functions.channels import JoinChannelRequest, GetFullChannelRequest, GetParticipantsRequest
 from telethon.tl.functions.contacts import GetContactsRequest, DeleteContactsRequest
 from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInviteRequest, GetFullChatRequest
+from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch, \
-    ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent
+    ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent, User
 
 from jd import app
 
@@ -242,6 +243,41 @@ class TelegramAPIs(object):
                 }
                 result_json["data"] = out
                 yield result_json
+
+    async def get_person_dialog_list(self):
+        """
+        获取个人聊天
+        :return: 返回json, {'data': [], 'result': 'success/failed', 'reason':''}
+        data: list类型，
+        """
+        async for dialog in self.client.iter_dialogs():
+            # 确保每次数据的准确性
+            result_json = {"result": "success", "reason": "ok"}
+            chat = dialog.entity
+            # if isinstance(chat, Chat):
+            #     channel_full = await self.client(GetFullChatRequest(chat.id))
+            #     member_count = channel_full.chats[0].participants_count
+            #     # channel_description = channel_full.full_chat.about
+            #     channel_description = ""
+            #     username = None
+            #     megagroup = True
+            if isinstance(chat, User):
+                channel_full = await self.client(GetFullUserRequest(chat.id))
+                username = channel_full.users[0].username or ''
+                user_id = channel_full.users[0].id
+            else:
+                continue
+            # megagroup: true表示超级群组(官方说法)
+            # 实际测试发现(TaiwanNumberOne该群组)，megagroup表示频道或群组，true表示群，false表示频道
+            # democracy: 暂时不清楚什么意思
+            out = {
+                "id": chat.id,
+                "username": username,
+                "user_id": user_id,
+                "unread_count": dialog.unread_count,
+            }
+            result_json["data"] = out
+            yield result_json
 
     async def get_dialog(self, chat_id, is_more=False):
         """
@@ -512,7 +548,7 @@ if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     tg = TelegramAPIs()
     config_js = app.config['TG_CONFIG']
-    session_name = f'{app.static_folder}/utils/{config_js.get("session_name")}'
+    session_name = f'{app.static_folder}/utils/{config_js.get("web_session_name")}'
     api_id = config_js.get("api_id")
     api_hash = config_js.get("api_hash")
     proxy = config_js.get("proxy", {})
@@ -529,11 +565,13 @@ if __name__ == '__main__':
 
 
     # async def get_group_list():
-    #     group_list = tg.get_dialog_list()
+    #     group_list = tg.get_person_dialog_list()
     #     result = []
     #     async for group in group_list:
     #         result.append(group)
     #     print('group_list:', result)
+
+
     #
 
     # async def join_group():
@@ -544,31 +582,30 @@ if __name__ == '__main__':
 
     #
 
-    # async def scan_message_photo():
-    #     params = {
-    #         "limit": 20,
-    #         # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
-    #         "last_message_id": -1,
-    #     }
-    #     group_id = 1704694555
-    #     chat = await tg.get_dialog(group_id)
-    #     print(chat)
-    #     history = tg.scan_message(chat, **params)
-    #     async for message in history:
-    #         print(message)
+    async def scan_message_photo():
+        params = {
+            "limit": 20,
+            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+            "last_message_id": -1,
+        }
+        group_id = 5484198953
+        chat = await tg.get_dialog(group_id)
+        print(chat)
+        history = tg.scan_message(chat, **params)
+        async for message in history:
+            print(message)
     #
     #
 
-    async def get_group_users():
-        group_id = 1610505522
-        result = await tg.get_chatroom_all_user_info(group_id)
-        print(result)
+    # async def get_group_users():
+    #     group_id = 1610505522
+    #     result = await tg.get_chatroom_all_user_info(group_id)
+    #     print(result)
 
     # async def get_group_users():
     #     group_id = 1610505522
     #     result = await tg.get_chatroom_user_info(group_id, '小胖')
     #     print(result)
 
-
     with tg.client:
-        tg.client.loop.run_until_complete(get_group_users())
+        tg.client.loop.run_until_complete(scan_message_photo())
