@@ -197,3 +197,32 @@ CREATE TABLE `tg_group_user_info`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   CHARSET = utf8mb4 COMMENT ='tg群组用户信息';
+
+CREATE TABLE `chemical_platform_product_info` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform_id` int not null default 0 comment 'chemical_platform.id',
+  `product_name` varchar(128) not null default '' comment '产品名称',
+  `seller_name` varchar(256) not null default '' comment '商家名称',
+  `compound_name` varchar(256) not null default '' comment '化合物名称',
+  `contact_number` varchar(128) not null default '' comment '联系方式',
+  `status` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='化工平台产品信息';
+
+CREATE TABLE `tg_account` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) NOT NULL DEFAULT '' COMMENT '群组名称',
+  `user_id` varchar(128) NOT NULL DEFAULT '' COMMENT '聊天室id',
+  `username` varchar(128) NOT NULL DEFAULT '' COMMENT '用户名',
+  `nickname` varchar(128) NOT NULL DEFAULT '' COMMENT '昵称',
+  `phone` varchar(32) NOT NULL DEFAULT '' COMMENT '手机号',
+  `password` varchar(32) not null default '' comment '密码',
+  `phone_code_hash` varchar(128) not null default '',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '0-未加入 1-加入成功 2-加入失败',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `udx_phone` (`phone`)
+) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='tg账号';

@@ -548,7 +548,7 @@ if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     tg = TelegramAPIs()
     config_js = app.config['TG_CONFIG']
-    session_name = f'{app.static_folder}/utils/{config_js.get("web_session_name")}'
+    session_name = f'{app.static_folder}/utils/test123/{config_js.get("job_session_name")}'
     api_id = config_js.get("api_id")
     api_hash = config_js.get("api_hash")
     proxy = config_js.get("proxy", {})
@@ -564,13 +564,17 @@ if __name__ == '__main__':
     )
 
 
+    async def get_me():
+        me = await tg.get_me()
+        print(f'me: {me}')
+
+
     # async def get_group_list():
-    #     group_list = tg.get_person_dialog_list()
+    #     group_list = await tg.get_person_dialog_list()
     #     result = []
-    #     async for group in group_list:
+    #     for group in group_list:
     #         result.append(group)
     #     print('group_list:', result)
-
 
     #
 
@@ -582,18 +586,18 @@ if __name__ == '__main__':
 
     #
 
-    async def scan_message_photo():
-        params = {
-            "limit": 20,
-            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
-            "last_message_id": -1,
-        }
-        group_id = 5484198953
-        chat = await tg.get_dialog(group_id)
-        print(chat)
-        history = tg.scan_message(chat, **params)
-        async for message in history:
-            print(message)
+    # async def scan_message_photo():
+    #     params = {
+    #         "limit": 20,
+    #         # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+    #         "last_message_id": -1,
+    #     }
+    #     group_id = 5484198953
+    #     chat = await tg.get_dialog(group_id)
+    #     print(chat)
+    #     history = tg.scan_message(chat, **params)
+    #     async for message in history:
+    #         print(message)
     #
     #
 
@@ -608,4 +612,4 @@ if __name__ == '__main__':
     #     print(result)
 
     with tg.client:
-        tg.client.loop.run_until_complete(scan_message_photo())
+        tg.client.loop.run_until_complete(get_me())

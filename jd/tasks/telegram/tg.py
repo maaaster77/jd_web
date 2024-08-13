@@ -1,7 +1,12 @@
+import asyncio
 import logging
+import os
+
+from telethon import TelegramClient, errors
 
 from jCelery import celery
 from jd import app, db
+from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.services.spider.telegram_spider import TelegramSpider
@@ -130,6 +135,69 @@ def fetch_group_recent_user_info(origin='celery'):
     return f'fetch recent users finished'
 
 
+@celery.task
+def add_account(origin, username, phone, code=''):
+    config_js = app.config['TG_CONFIG']
+    session_dir = f'{app.static_folder}/utils/{username}'
+    if not os.path.exists(session_dir):
+        os.makedirs(session_dir, exist_ok=True)
+    api_id = config_js.get("api_id")
+    api_hash = config_js.get("api_hash")
+    session_name = config_js.get(f"{origin}_session_name")
+    session_name = f'{session_dir}/{session_name}'
+    tg_account = TgAccount.query.filter(TgAccount.phone == phone).first()
+    if not tg_account:
+        return
+
+    async def start_session(session_name):
+        client = TelegramClient(session_name, api_id, api_hash)
+        if not client.is_connected():
+            await client.connect()
+        if not code:
+            res = None
+            for i in range(3):
+                res = await client.send_code_request(phone, force_sms=False)
+            if res:
+                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                    'phone_code_hash': res.phone_code_hash,
+                })
+        else:
+            try:
+                await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
+            except errors.SessionPasswordNeededError:
+                if not tg_account.phone_code_hash:
+                    print('phone_code_hash', tg_account.phone_code_hash)
+                    return
+                user = await client.sign_in(phone=phone, password=tg_account.password)
+                print('user', user)
+                if user:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'status': TgAccount.StatusType.JOIN_SUCCESS,
+                        'username': user.username,
+                        'user_id': user.id,
+                        'phone': user.phone,
+                        'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
+                        'phone_code_hash': ''
+                    })
+                else:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'status': TgAccount.StatusType.JOIN_FAIL
+                    })
+            except Exception as e:
+                logger.info('add_account error: {}'.format(e))
+
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(start_session(session_name))
+        loop.close()
+    except Exception as e:
+        logger.info('add_account error: {}'.format(e))
+
+    db.session.commit()
+    return
+
+
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=True)
-    join_group('ulae4888')
+    add_account('celery', 'tt123', '+56990552148', code='94088')
