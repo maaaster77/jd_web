@@ -41,7 +41,7 @@
                     <div class="col-md-3">
                         <div class="form-group d-flex align-items-center">
                             <label for="search_platform_id" class="me-2">平台:</label>
-                            <select class="selectpicker" multiple id="search_platform_id" name="search_platform_id"
+                            <select class="selectpicker" multiple id="search_platform_id" name="search_platform_id" data-actions-box="true"
                                     data-live-search="true" title="请选择">
                                 {% for tag in platform_list %}
                                     <option value="{{ tag.id }}"
