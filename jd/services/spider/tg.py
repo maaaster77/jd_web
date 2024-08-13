@@ -17,10 +17,12 @@ class TgService:
     }
 
     @classmethod
-    def init_tg(cls, origin='celery'):
+    def init_tg(cls, origin='celery', username=''):
         tg = TelegramAPIs()
         config_js = app.config['TG_CONFIG']
         session_dir = f'{app.static_folder}/utils'
+        if username:
+            session_dir = f'{session_dir}/{username}'
         os.makedirs(session_dir, exist_ok=True)
         if origin == 'web':
             session_name = config_js.get("web_session_name")

@@ -3,12 +3,13 @@ import pkgutil
 from importlib import import_module
 
 from flask import Flask
+from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
 from jCelery import celery
 
 db = SQLAlchemy()
-
+socketio = SocketIO()
 JD_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -27,13 +28,15 @@ class Application(Flask):
         self.static_folder = os.path.abspath(os.path.join(JD_ROOT, '../static'))
         self.secret_key = self.config.get('SESSION_SECRET_KEY')
 
-    def ready(self, db_switch=True, web_switch=True, worker_switch=True):
+    def ready(self, db_switch=True, web_switch=True, worker_switch=True, socketio_switch=False):
         if db_switch:
             db.init_app(self)
         if web_switch:
             self.prepare_blueprints()
         if worker_switch:
             self.prepare_celery()
+        if socketio_switch:
+            self.prepare_socketio()
 
     def prepare_blueprints(self):
         from jd import views
@@ -56,6 +59,10 @@ class Application(Flask):
                     return self.run(*args, **kwargs)
 
         celery.Task = ContextTask
+
+    def prepare_socketio(self):
+        socketio.init_app(self, cors_allowed_origins="*")
+
 
     # def wsgi_app(self, environ, start_response):
     #     ctx = self.request_context(environ)

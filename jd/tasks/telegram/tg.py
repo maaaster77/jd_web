@@ -1,8 +1,15 @@
+import asyncio
+import datetime
 import logging
+import os
+
+from telethon import TelegramClient, errors
 
 from jCelery import celery
 from jd import app, db
+from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
+from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.services.spider.telegram_spider import TelegramSpider
 from jd.services.spider.tg import TgService
@@ -130,6 +137,128 @@ def fetch_group_recent_user_info(origin='celery'):
     return f'fetch recent users finished'
 
 
+@celery.task
+def add_account(origin, username, phone, code=''):
+    config_js = app.config['TG_CONFIG']
+    session_dir = f'{app.static_folder}/utils/{username}'
+    if not os.path.exists(session_dir):
+        os.makedirs(session_dir, exist_ok=True)
+    api_id = config_js.get("api_id")
+    api_hash = config_js.get("api_hash")
+    session_name = config_js.get(f"{origin}_session_name")
+    session_name = f'{session_dir}/{session_name}'
+    tg_account = TgAccount.query.filter(TgAccount.phone == phone).first()
+    if not tg_account:
+        return
+
+    async def start_session(session_name):
+        client = TelegramClient(session_name, api_id, api_hash)
+        if not client.is_connected():
+            await client.connect()
+        if not code:
+            res = None
+            for i in range(3):
+                res = await client.send_code_request(phone, force_sms=False)
+            if res:
+                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                    'phone_code_hash': res.phone_code_hash,
+                })
+        else:
+            try:
+                await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
+            except errors.SessionPasswordNeededError:
+                if not tg_account.phone_code_hash:
+                    print('phone_code_hash', tg_account.phone_code_hash)
+                    return
+                user = await client.sign_in(phone=phone, password=tg_account.password)
+                print('user', user)
+                if user:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'status': TgAccount.StatusType.JOIN_SUCCESS,
+                        'username': user.username,
+                        'user_id': user.id,
+                        'phone': user.phone,
+                        'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
+                        'phone_code_hash': ''
+                    })
+                else:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'status': TgAccount.StatusType.JOIN_FAIL
+                    })
+            except Exception as e:
+                logger.info('add_account error: {}'.format(e))
+
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(start_session(session_name))
+        loop.close()
+    except Exception as e:
+        logger.info('add_account error: {}'.format(e))
+
+    db.session.commit()
+    return
+
+
+@celery.task
+def fetch_person_chat_history(name, origin='celery'):
+    tg = TgService.init_tg(origin=origin, username=name)
+
+    async def get_person_dialog_list(group_name='私人聊天'):
+        chat_list = await tg.get_person_dialog_list()
+        for chat in chat_list:
+            chat_id = chat['id']
+            try:
+                chat = await tg.get_dialog(chat_id)
+            except Exception as e:
+                logger.info(f'{group_name}, 未获取到群组，准备重新加入...{e}')
+                chat = None
+            if not chat:
+                continue
+            param = {
+                "limit": 60,
+                # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+                "last_message_id": -1,
+            }
+            history_list = []
+            async for data in tg.scan_message(chat, **param):
+                print(data)
+                history_list.append(data)
+            history_list.reverse()
+            message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
+            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list),
+                                                  TgGroupChatHistory.chat_id == str(chat_id)).all()
+            already_message_id_list = [data.message_id for data in msg]
+            for data in history_list:
+                user_id = data.get("user_id", 0)
+                if user_id == 777000:
+                    # 客服
+                    continue
+                message_id = str(data.get("message_id", 0))
+                if message_id in already_message_id_list:
+                    continue
+                user_id = str(user_id)
+                nickname = data.get("nick_name", "")
+
+                obj = TgGroupChatHistory(
+                    chat_id=str(chat_id),
+                    message_id=message_id,
+                    nickname=nickname,
+                    username=data.get("user_name", ""),
+                    user_id=user_id,
+                    postal_time=data.get("postal_time", datetime.datetime.now()) + datetime.timedelta(hours=8),
+                    message=data.get("message", ""),
+                    reply_to_msg_id=str(data.get("reply_to_msg_id", 0)),
+                    photo_path=data.get("photo", {}).get('file_path', ''),
+                )
+                db.session.add(obj)
+            db.session.commit()
+
+    # 私人聊天
+    with tg.client:
+        tg.client.loop.run_until_complete(get_person_dialog_list())
+
+
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=True)
-    join_group('ulae4888')
+    add_account('celery', 'tt123', '+56990552148', code='94088')
