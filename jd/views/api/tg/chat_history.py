@@ -8,6 +8,7 @@ from openpyxl.drawing.image import Image
 from sqlalchemy import func
 
 from jd import app, db
+from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
@@ -25,9 +26,10 @@ def tg_chat_room_history():
     end_date = get_or_exception('end_date', args, 'str', '')
     search_chat_id_list = args.getlist('search_group_id')
     search_user_id_list = args.getlist('search_user_id')
+    search_account_id_list = args.getlist('search_account_id')
 
     rows, total_records = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
-                                                      search_content, page, page_size)
+                                                      search_content, page, page_size, search_account_id_list)
     total_pages = (total_records + page_size - 1) // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     group_list = [{'chat_id': c.chat_id, 'group_name': c.name} for c in chat_room]
@@ -60,17 +62,21 @@ def tg_chat_room_history():
     # Convert the dictionary values back into a list
     group_user_list = list(unique_users.values())
 
+    tg_accounts = TgAccount.query.filter(TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
+    tg_accounts_list = [{'account_id': t.id, 'username': t.username} for t in tg_accounts]
+
     return render_template('chat_room_history.html', data=data, group_list=group_list, total_pages=total_pages,
                            current_page=page, page_size=page_size, group_user_list=group_user_list,
                            default_chat_id=search_chat_id_list,
                            default_user_id=search_user_id_list, default_search_content=search_content,
                            default_start_date=start_date,
-                           default_end_date=end_date)
+                           default_search_account_id=search_account_id_list,
+                           default_end_date=end_date, tg_accounts=tg_accounts_list)
 
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,
                                 page=None,
-                                page_size=None):
+                                page_size=None, search_account_id_list=None):
     # 需要修改sql_mode
     # set sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
     query = db.session.query(
@@ -98,6 +104,12 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         query = query.filter(TgGroupChatHistory.user_id.in_(search_user_id_list))
     if search_content:
         query = query.filter(TgGroupChatHistory.message.like(f'%{search_content}%'))
+    if search_account_id_list:
+        tg_accounts = TgAccount.query.filter(TgAccount.id.in_(search_account_id_list)).all()
+        user_id_list = [t.user_id for t in tg_accounts]
+        his = TgGroupChatHistory.query.filter(TgGroupChatHistory.user_id.in_(user_id_list)).all()
+        chat_id_list = [t.chat_id for t in his]
+        query = query.filter(TgGroupChatHistory.chat_id.in_(chat_id_list))
     total_records = query.count()
     if page and page_size:
         offset = (page - 1) * page_size
@@ -115,9 +127,12 @@ def tg_chat_room_history_download():
     end_date = get_or_exception('end_date', args, 'str', '')
     search_chat_id_list = args.getlist('search_group_id')
     search_user_id_list = args.getlist('search_user_id')
+    search_account_id_list = args.getlist('search_account_id')
+
+
 
     rows, _ = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
-                                          search_content)
+                                          search_content, search_account_id_list=search_account_id_list)
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     chat_room = {r.chat_id: r.name for r in chat_room}
     data = []

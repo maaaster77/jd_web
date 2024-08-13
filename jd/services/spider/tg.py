@@ -17,7 +17,7 @@ class TgService:
     }
 
     @classmethod
-    def init_tg(cls, origin='celery', username='', password='', phone=''):
+    def init_tg(cls, origin='celery', username=''):
         tg = TelegramAPIs()
         config_js = app.config['TG_CONFIG']
         session_dir = f'{app.static_folder}/utils'
@@ -44,15 +44,9 @@ class TgService:
         #     proxy_port = proxy.get("port", 7890)
         #     clash_proxy = (protocal, proxy_ip, proxy_port)
         try:
-            if phone:
-                tg.init_client(
-                    session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy, phone=phone,
-                    password=password
-                )
-            else:
-                tg.init_client(
-                    session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
-                )
+            tg.init_client(
+                session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
+            )
         except Exception as e:
             logger.info(e)
             return None

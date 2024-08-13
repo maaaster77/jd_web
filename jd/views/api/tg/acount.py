@@ -3,7 +3,7 @@ from flask import request, render_template, redirect, url_for
 from jd import db
 from jd.models.tg_account import TgAccount
 
-from jd.tasks.telegram.tg import add_account
+from jd.tasks.telegram.tg import add_account, fetch_person_chat_history
 from jd.views import get_or_exception, success
 from jd.views.api import api
 
@@ -13,6 +13,7 @@ def tg_account_add():
     username = get_or_exception('username', request.form, 'str')
     phone = get_or_exception('phone', request.form, 'str')
     password = get_or_exception('password', request.form, 'str')
+    username = username.replace(' ', '')
     obj = TgAccount.query.filter_by(phone=phone).first()
     if obj and obj.status == TgAccount.StatusType.JOIN_SUCCESS:
         return redirect(url_for('api.tg_account_index'))
@@ -67,4 +68,15 @@ def tg_account_delete():
     id = get_or_exception('id', request.args, 'int')
     TgAccount.query.filter_by(id=id).delete()
     db.session.commit()
+    return redirect(url_for('api.tg_account_index'))
+
+
+@api.route('/tg/account/chat/search', methods=['POST'])
+def tg_account_chat_search():
+    account_id = get_or_exception('account_id', request.json, 'str')
+    account_id_list = [int(i) for i in account_id.split(',')]
+    tg_accounts = TgAccount.query.filter(TgAccount.id.in_(account_id_list), TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
+    for account in tg_accounts:
+        fetch_person_chat_history.delay(account.name)
+
     return redirect(url_for('api.tg_account_index'))
