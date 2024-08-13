@@ -43,6 +43,7 @@ def chemical_product_info_list():
             'compound_name': item.compound_name,
             'seller_name': item.seller_name,
             'contact_number': item.contact_number,
+            'qq_number': item.qq_number,
             'created_at': item.created_at.strftime('%Y-%m-%d %H:%M:%S')
         } for item in product_info_list
     ]
