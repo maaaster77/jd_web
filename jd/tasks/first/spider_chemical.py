@@ -21,7 +21,7 @@ def deal_spider_chemical(platform_id):
             continue
         obj = ChemicalPlatformProductInfo(platform_id=platform_id, product_name=data['product_name'],
                                           compound_name=data['compound_name'], seller_name=data['seller_name'],
-                                          contact_number=data['contact_number'])
+                                          contact_number=data['contact_number'], qq_number=data.get('qq_number', ''))
         db.session.add(obj)
         db.session.flush()
         i += 1

@@ -1,7 +1,7 @@
 import random
 import re
 import time
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
@@ -109,11 +109,13 @@ class HuaYuanSpider:
             html = self._send_request(url)
             if html is None:
                 continue
+            time.sleep(1)
             soup = BeautifulSoup(html, 'lxml')
             product_name = soup.find(class_='flex-center').find('h1').text
             seller_name = ''
             compound_name = ''
             contact_number = ''
+            qq_number = ''
             td_list = soup.find('tr', id='firsttr').find_all('td')
             for td in td_list:
                 compound_name = td.text
@@ -125,12 +127,27 @@ class HuaYuanSpider:
                     continue
                 if '联系电话' in li.text:
                     contact_number = li.text.replace('联系电话：', '')
-                    break
+                    continue
+                if '联系人' in li.text:
+                    a_tag = li.find('a')
+                    if not a_tag:
+                        continue
+                    qq_url = a_tag.get('href')
+                    if not qq_url:
+                        continue
+                    qq_url = f'{self._domain}{qq_url}'
+                    parsed_url = urlparse(qq_url)
+                    query_params = parse_qs(parsed_url.query)
+                    qq_number = query_params.get('qqId', [''])[0]
+
+
+
             yield {
                 'product_name': product_name.replace('\r', '').replace('\n', '').replace(' ', ''),
                 'seller_name': seller_name.replace('\n', ''),
                 'contact_number': contact_number,
-                'compound_name': compound_name.replace('\r', '').replace('\n', '')
+                'compound_name': compound_name.replace('\r', '').replace('\n', ''),
+                'qq_number': qq_number
             }
 
     def search_query(self, page=1):

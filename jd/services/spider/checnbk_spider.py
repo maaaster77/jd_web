@@ -72,6 +72,7 @@ class ChemBkSpider:
         contact_number = ''
         compound_name = ''
         seller_name = ''
+        qq_number = ''
         for index, tr in enumerate(tr_list):
             if index == 0:
                 product_name = tr.text
@@ -85,18 +86,25 @@ class ChemBkSpider:
         if card_header:
             seller_name = card_header.text
         card_body_list = soup.find_all(class_='card-body')
-        pattern = r"手机: (\d{11})"
+        phone_pattern = r"手机: (\d{11})"
+        qq_pattern = r"QQ: (\d+)"
         for card_body in card_body_list:
-            match = re.search(pattern, card_body.text, re.DOTALL)
+            match = re.search(phone_pattern, card_body.text, re.DOTALL)
             if match:
                 contact_number = match.group(1)
+            match = re.search(qq_pattern, card_body.text, re.DOTALL)
+            if match:
+                qq_number = match.group(1)
+            if contact_number and qq_number:
                 break
+
 
         yield {
             'product_name': product_name.replace('中文名 ', '').replace('\r', '').replace('\n', '').replace(' ', ''),
             'compound_name': compound_name.replace('英文名 ', '').strip(' ').replace('\r', '').replace('\n', ''),
             'seller_name': seller_name.strip(' '),
             'contact_number': contact_number.strip(' '),
+            'qq_number': qq_number
         }
 
     def search_query(self, page=1):

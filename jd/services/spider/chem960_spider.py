@@ -94,10 +94,9 @@ class ChemicalNineSpider:
                     product_link_list.append(p_link)
             time.sleep(1)
             # for product_link in product_link_list:
-                # yield from self.request_product_detail(product_link)
+            # yield from self.request_product_detail(product_link)
             for l in product_link_list:
                 yield from self.request_product_detail(l)
-
 
     def request_product_detail(self, link):
         html = self._send_request(link)
@@ -109,6 +108,16 @@ class ChemicalNineSpider:
         contact_number = soup.find('a', class_='companyphone').text
         seller_name = soup.find('h3', class_='company_header').text
         product_detail_link = soup.find('span', class_='outside_btn').find('a').get('href')
+        item_list = soup.find_all(class_='item_list')
+        qq_number = ''
+        for item in item_list:
+            item_text = item.text
+            if 'QQ' not in item_text:
+                continue
+            a_tag = item.find('a', rel='nofollow')
+            if a_tag:
+                qq_number = a_tag.text
+            break
         if product_detail_link:
             detail_html = self._send_request(product_detail_link)
             soup = BeautifulSoup(detail_html, 'lxml')
@@ -123,7 +132,8 @@ class ChemicalNineSpider:
             'product_name': product_name.replace('\r', '').replace('\n', '').replace(' ', ''),
             'seller_name': seller_name.replace('\n', ''),
             'contact_number': contact_number,
-            'compound_name': compound_name.replace('\r', '').replace('\n', '')
+            'compound_name': compound_name.replace('\r', '').replace('\n', ''),
+            'qq_number': qq_number
         }
 
     def search_query(self, page=1):

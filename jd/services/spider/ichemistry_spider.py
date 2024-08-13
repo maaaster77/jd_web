@@ -1,5 +1,6 @@
 import re
 import time
+from urllib.parse import urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
@@ -73,6 +74,7 @@ class IchemistrySpider:
         contact_number = ''
         compound_name = ''
         seller_name = ''
+        qq_number = ''
         for index, tr in enumerate(tr_list):
             if index == 0:
                 continue
@@ -85,19 +87,30 @@ class IchemistrySpider:
             if index > 2:
                 break
 
-        supply_info = soup.find(class_='SupplyInfo')
+        supply_info = soup.find(class_='vipSupplyInfo')
         if supply_info:
             seller_name = supply_info.find('a').text
             pattern = r"咨询电话：(.*?)$"
             match = re.search(pattern, supply_info.text, re.DOTALL)
             if match:
                 contact_number = match.group(1)
+            a_tag_list = supply_info.find_all('a')
+            for a_tag in a_tag_list:
+                qq_url = a_tag.get('href')
+                if 'tencent' in qq_url:
+                    parsed_url = urlparse(qq_url)
+                    query_params = parse_qs(parsed_url.query)
+                    qq_number = query_params.get('uin', [''])[0]
+                    break
+
+
 
         yield {
             'product_name': product_name.replace('中文名:', '').replace('\r', '').replace('\n', '').replace(' ', ''),
             'compound_name': compound_name.replace('英文名:', '').replace('\r', '').replace('\n', ''),
             'seller_name': seller_name,
             'contact_number': contact_number,
+            'qq_number': qq_number
         }
 
     def search_query(self, page=1):
