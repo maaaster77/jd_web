@@ -11,7 +11,7 @@ from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
-from jd.services.spider.telegram_spider import TelegramSpider
+from jd.services.spider.telegram_spider import TelegramSpider, TelegramAPIs
 from jd.services.spider.tg import TgService
 
 logger = logging.getLogger(__name__)
@@ -138,55 +138,59 @@ def fetch_group_recent_user_info(origin='celery'):
 
 
 @celery.task
-def add_account(origin, username, phone, code=''):
-    config_js = app.config['TG_CONFIG']
-    session_dir = f'{app.static_folder}/utils/{username}'
-    if not os.path.exists(session_dir):
-        os.makedirs(session_dir, exist_ok=True)
-    api_id = config_js.get("api_id")
-    api_hash = config_js.get("api_hash")
-    session_name = config_js.get(f"{origin}_session_name")
-    session_name = f'{session_dir}/{session_name}'
-    tg_account = TgAccount.query.filter(TgAccount.phone == phone).first()
+def add_account(account_id, code='', origin='celery'):
+    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
     if not tg_account:
         return
+
+    session_dir = f'{app.static_folder}/utils'
+    session_dir = f'{session_dir}/{tg_account.name}'
+    os.makedirs(session_dir, exist_ok=True)
+    session_name = f'{session_dir}/jd_{origin}.session'
+    api_id = tg_account.api_id
+    api_hash = tg_account.api_hash
+    phone = tg_account.phone
 
     async def start_session(session_name):
         client = TelegramClient(session_name, api_id, api_hash)
         if not client.is_connected():
             await client.connect()
         if not code:
-            res = None
             for i in range(3):
                 res = await client.send_code_request(phone, force_sms=False)
-            if res:
-                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                    'phone_code_hash': res.phone_code_hash,
-                })
+                if res:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'phone_code_hash': res.phone_code_hash,
+                    })
+                    break
         else:
             try:
-                await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
+                user = await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
             except errors.SessionPasswordNeededError:
                 if not tg_account.phone_code_hash:
                     print('phone_code_hash', tg_account.phone_code_hash)
+                    client.disconnect()
                     return
                 user = await client.sign_in(phone=phone, password=tg_account.password)
-                print('user', user)
-                if user:
-                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                        'status': TgAccount.StatusType.JOIN_SUCCESS,
-                        'username': user.username,
-                        'user_id': user.id,
-                        'phone': user.phone,
-                        'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
-                        'phone_code_hash': ''
-                    })
-                else:
-                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                        'status': TgAccount.StatusType.JOIN_FAIL
-                    })
             except Exception as e:
                 logger.info('add_account error: {}'.format(e))
+                client.disconnect()
+                return
+            print('user', user)
+            if user:
+                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                    'status': TgAccount.StatusType.JOIN_SUCCESS,
+                    'username': user.username,
+                    'user_id': user.id,
+                    'phone': user.phone,
+                    'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
+                    'phone_code_hash': ''
+                })
+            else:
+                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                    'status': TgAccount.StatusType.JOIN_FAIL
+                })
+        client.disconnect()
 
     try:
         loop = asyncio.new_event_loop()
@@ -194,15 +198,25 @@ def add_account(origin, username, phone, code=''):
         loop.run_until_complete(start_session(session_name))
         loop.close()
     except Exception as e:
-        logger.info('add_account error: {}'.format(e))
+        # logger.info('add_account error: {}'.format(e))
+        pass
 
     db.session.commit()
     return
 
 
 @celery.task
-def fetch_person_chat_history(name, origin='celery'):
-    tg = TgService.init_tg(origin=origin, username=name)
+def fetch_person_chat_history(account_id, origin='celery'):
+    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
+    if not tg_account:
+        return
+
+    tg = TelegramAPIs()
+    session_dir = f'{app.static_folder}/utils'
+    session_name = f'{session_dir}/{tg_account.name}/jd_{origin}.session'
+    tg.init_client(
+        session_name=session_name, api_id=tg_account.api_id, api_hash=tg_account.api_hash
+    )
 
     async def get_person_dialog_list(group_name='私人聊天'):
         chat_list = await tg.get_person_dialog_list()
@@ -254,6 +268,8 @@ def fetch_person_chat_history(name, origin='celery'):
                 db.session.add(obj)
             db.session.commit()
 
+
+
     # 私人聊天
     with tg.client:
         tg.client.loop.run_until_complete(get_person_dialog_list())
@@ -261,4 +277,5 @@ def fetch_person_chat_history(name, origin='celery'):
 
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=True)
-    add_account('celery', 'tt123', '+56990552148', code='94088')
+    # add_account(3, code='28381')
+    fetch_person_chat_history(3)

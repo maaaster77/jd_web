@@ -5,6 +5,8 @@ class TgAccount(db.Model):
     __tablename__ = 'tg_account'
 
     id = db.Column(db.Integer, primary_key=True)
+    api_id = db.Column(db.String(32), nullable=False, default='', comment='api_id')
+    api_hash = db.Column(db.String(64), nullable=False, default='', comment='api_hash')
     name = db.Column(db.String(32), nullable=False, default='', comment='名称')
     phone = db.Column(db.String(32), nullable=False, default='', comment='手机号')
     phone_code_hash = db.Column(db.String(128), nullable=False, default='', comment='手机号hash')

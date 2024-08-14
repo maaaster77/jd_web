@@ -244,3 +244,6 @@ values  (1, '信件', 0, '2024-07-27 12:01:28', '2024-07-27 12:01:28'),
 
 
 alter table chemical_platform_product_info add qq_number varchar(32) not null default '' comment 'QQ号';
+
+alter table tg_account add `api_id` varchar(32) not null default '' comment 'api_id';
+alter table tg_account add `api_hash` varchar(64) not null default '' comment 'api_hash';
