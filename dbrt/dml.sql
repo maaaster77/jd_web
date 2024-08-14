@@ -247,3 +247,6 @@ alter table chemical_platform_product_info add qq_number varchar(32) not null de
 
 alter table tg_account add `api_id` varchar(32) not null default '' comment 'api_id';
 alter table tg_account add `api_hash` varchar(64) not null default '' comment 'api_hash';
+
+alter table tg_account add `two_step` int not null default 0 comment '两步验证';
+alter table tg_account add `code` varchar(16) not null default 0 comment '验证码';
