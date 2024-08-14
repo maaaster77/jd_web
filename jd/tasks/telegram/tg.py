@@ -167,11 +167,12 @@ def add_account(account_id, code='', origin='celery'):
             try:
                 user = await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
             except errors.SessionPasswordNeededError:
-                if not tg_account.phone_code_hash:
-                    print('phone_code_hash', tg_account.phone_code_hash)
+                if tg_account.password:
+                    user = await client.sign_in(phone=phone, password=tg_account.password)
+                else:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({'two_step': 1})
                     client.disconnect()
                     return
-                user = await client.sign_in(phone=phone, password=tg_account.password)
             except Exception as e:
                 logger.info('add_account error: {}'.format(e))
                 client.disconnect()

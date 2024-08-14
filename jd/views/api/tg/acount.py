@@ -1,3 +1,5 @@
+import time
+
 from flask import request, render_template, redirect, url_for
 
 from jd import db
@@ -14,7 +16,6 @@ def tg_account_add():
     api_hash = get_or_exception('api_hash', request.form, 'str')
     username = get_or_exception('username', request.form, 'str')
     phone = get_or_exception('phone', request.form, 'str')
-    # password = get_or_exception('password', request.form, 'str')
     username = username.replace(' ', '')
     obj = TgAccount.query.filter_by(phone=phone).first()
     if obj and obj.status == TgAccount.StatusType.JOIN_SUCCESS:
@@ -38,11 +39,13 @@ def tg_account_verify():
     obj = TgAccount.query.filter_by(phone=phone).first()
     if not obj:
         return redirect(url_for('api.tg_account_index'))
+    TgAccount.query.filter_by(phone=phone).update({'code': code})
+    db.session.commit()
 
     origin = 'celery'
     add_account.delay(obj.id, code=code, origin=origin)
 
-    return redirect(url_for('api.tg_account_index'))
+    return success()
 
 
 @api.route('/tg/account/index', methods=['GET'])
@@ -77,8 +80,33 @@ def tg_account_delete():
 def tg_account_chat_search():
     account_id = get_or_exception('account_id', request.json, 'str')
     account_id_list = [int(i) for i in account_id.split(',')]
-    tg_accounts = TgAccount.query.filter(TgAccount.id.in_(account_id_list), TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
+    tg_accounts = TgAccount.query.filter(TgAccount.id.in_(account_id_list),
+                                         TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
     for account in tg_accounts:
         fetch_person_chat_history.delay(account.id)
+
+    return redirect(url_for('api.tg_account_index'))
+
+
+@api.route('/tg/account/tow_step_check', methods=['GET'])
+def tg_account_tow_step_check():
+    phone = get_or_exception('phone', request.args, 'str')
+    obj = TgAccount.query.filter_by(phone=phone).first()
+    if not obj:
+        return success({'two_step': 0})
+    if obj.user_id:
+        # 不需要验证
+        return success({'two_step': 2})
+    return success({'two_step': obj.two_step})
+
+
+@api.route('/tg/account/update_pwd', methods=['POST'])
+def tg_account_update_pwd():
+    password = get_or_exception('password', request.form, 'str')
+    phone = get_or_exception('phone', request.form, 'str')
+    TgAccount.query.filter_by(phone=phone).update({'password': password})
+    db.session.commit()
+    obj = TgAccount.query.filter_by(phone=phone).first()
+    add_account.delay(obj.id, code=obj.code, origin='celery')
 
     return redirect(url_for('api.tg_account_index'))

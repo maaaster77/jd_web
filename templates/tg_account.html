@@ -109,9 +109,6 @@
                                     <label for="addApiHash" class="form-label">api_hash</label>
                                     <input type="text" class="form-control" id="api_hash" name="api_hash"
                                            placeholder="" required>
-{#                                    <label for="addPassword" class="form-label">密码</label>#}
-{#                                    <input type="text" class="form-control" id="password" name="password"#}
-{#                                           placeholder="">#}
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -135,7 +132,7 @@
                             <h5 class="modal-title" id="verifyCodeModalLabel">新增账号</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="addResultForm" action="{{ url_for('api.tg_account_verify') }}" method="POST">
+                        <form id="verifyCodeForm" action="{{ url_for('api.tg_account_verify') }}" method="POST">
                             <div class="modal-body">
                                 <!-- Form to add new result -->
                                 <div class="mb-3">
@@ -145,6 +142,37 @@
                                     <label for="addCode" class="form-label">验证码</label>
                                     <input type="text" class="form-control" id="code" name="code"
                                            placeholder="" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" id="verifyCodeButton">确定</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- password Modal -->
+            <div class="modal fade" id="verifyPasswordModal" tabindex="-1" aria-labelledby="verifyPasswordModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="verifyPasswordModalLabel">新增账号</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="verifyPasswordForm" action="{{ url_for('api.tg_account_update_pwd') }}" method="POST">
+                            <div class="modal-body">
+                                <!-- Form to add new result -->
+                                <div class="mb-3">
+                                    <label for="addPhone" class="form-label">手机号</label>
+                                    <input type="text" class="form-control" id="pwdPhoneVerify" name="phone" value=""
+                                           placeholder="" required>
+                                    <label for="addPassword" class="form-label">密码</label>
+                                    <input type="text" class="form-control" id="password" name="password"
+                                           placeholder="">
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -198,10 +226,7 @@
                     url: '{{ url_for("api.tg_account_add") }}',
                     data: formData,
                     success: function (response) {
-                        console.log('Form submitted successfully');
-                        // Set the value of the phone input in the second modal
                         $('#phoneVerify').val(phone);
-
                         // Show the second modal
                         $('#verifyCodeModal').modal('show');
                     },
@@ -210,7 +235,57 @@
                     }
                 });
             }
-        });
+
+            $('#verifyCodeButton').click(function (e) {
+                e.preventDefault();
+                var phone = $('#phoneVerify').val();
+                var formData = $('#verifyCodeForm').serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("api.tg_account_verify") }}',
+                    data: formData,
+                    success: function (response) {
+                        two_step_check(phone)
+                    },
+                    error: function (error) {
+                        console.error('Error submitting form:', error);
+                    }
+                });
+
+            })
+
+            function two_step_check(phone) {
+                function performAjaxRequest() {
+                    $.ajax({
+                        type: 'GET',
+                        url: '{{ url_for("api.tg_account_tow_step_check") }}',
+                        data: {phone: phone},
+                        success: function (response) {
+                            var payload = response.payload;
+                            if (payload.two_step === 1) {
+                                $('#pwdPhoneVerify').val(phone);
+                                $('#verifyPasswordModal').modal('show');
+                                clearInterval(intervalId);  // Stop polling
+                                location.reload()
+                            } else if (payload.two_step === 0) {
+                                return;
+                            } else {
+                                $('#verifyCodeModal').modal('hide');
+                            }
+                        },
+                        error: function (error) {
+                            console.error('Error submitting form:', error);
+                        }
+                    });
+                }
+                // Set interval to perform the request every 5 seconds
+                var intervalId = setInterval(performAjaxRequest, 1000);
+                setTimeout(function () {
+                    clearInterval(intervalId);  // Stop polling
+                }, 20000);  // 10000 milliseconds = 10 seconds
+            };
+        })
 
         $(document).on('click', '.search_keyword', function (e) {
             console.log('点击搜索')
