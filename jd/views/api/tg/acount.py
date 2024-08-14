@@ -10,21 +10,23 @@ from jd.views.api import api
 
 @api.route('/tg/account/add', methods=['POST'])
 def tg_account_add():
+    api_id = get_or_exception('api_id', request.form, 'str')
+    api_hash = get_or_exception('api_hash', request.form, 'str')
     username = get_or_exception('username', request.form, 'str')
     phone = get_or_exception('phone', request.form, 'str')
-    password = get_or_exception('password', request.form, 'str')
+    # password = get_or_exception('password', request.form, 'str')
     username = username.replace(' ', '')
     obj = TgAccount.query.filter_by(phone=phone).first()
     if obj and obj.status == TgAccount.StatusType.JOIN_SUCCESS:
         return redirect(url_for('api.tg_account_index'))
     if not obj:
-        obj = TgAccount(name=username, phone=phone, password=password)
+        obj = TgAccount(name=username, phone=phone, api_id=api_id, api_hash=api_hash)
         db.session.add(obj)
         db.session.flush()
     TgAccount.query.filter_by(phone=phone).update({'status': TgAccount.StatusType.JOIN_ONGOING})
     db.session.commit()
     origin = 'celery'
-    add_account.delay(origin, username=username, phone=phone)
+    add_account.delay(obj.id, origin=origin)
 
     return success()
 
@@ -38,7 +40,7 @@ def tg_account_verify():
         return redirect(url_for('api.tg_account_index'))
 
     origin = 'celery'
-    add_account.delay(origin, username=obj.name, phone=phone, code=code)
+    add_account.delay(obj.id, code=code, origin=origin)
 
     return redirect(url_for('api.tg_account_index'))
 
@@ -77,6 +79,6 @@ def tg_account_chat_search():
     account_id_list = [int(i) for i in account_id.split(',')]
     tg_accounts = TgAccount.query.filter(TgAccount.id.in_(account_id_list), TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
     for account in tg_accounts:
-        fetch_person_chat_history.delay(account.name)
+        fetch_person_chat_history.delay(account.id)
 
     return redirect(url_for('api.tg_account_index'))
