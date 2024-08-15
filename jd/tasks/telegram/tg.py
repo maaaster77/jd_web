@@ -142,14 +142,16 @@ def add_account(account_id, code='', origin='celery'):
     tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
     if not tg_account:
         return
+    api_id = tg_account.api_id
+    api_hash = tg_account.api_hash
+    phone = tg_account.phone
+    if not api_id or not api_hash or not phone:
+        return
 
     session_dir = f'{app.static_folder}/utils'
     session_dir = f'{session_dir}/{tg_account.name}'
     os.makedirs(session_dir, exist_ok=True)
     session_name = f'{session_dir}/jd_{origin}.session'
-    api_id = tg_account.api_id
-    api_hash = tg_account.api_hash
-    phone = tg_account.phone
 
     async def start_session(session_name):
         client = TelegramClient(session_name, api_id, api_hash)
@@ -268,8 +270,6 @@ def fetch_person_chat_history(account_id, origin='celery'):
                 )
                 db.session.add(obj)
             db.session.commit()
-
-
 
     # 私人聊天
     with tg.client:

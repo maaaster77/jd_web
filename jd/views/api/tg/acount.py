@@ -1,8 +1,9 @@
 import time
 
 from flask import request, render_template, redirect, url_for
+from flask_socketio import emit
 
-from jd import db
+from jd import db, socketio
 from jd.models.tg_account import TgAccount
 
 from jd.tasks.telegram.tg import add_account, fetch_person_chat_history
@@ -43,7 +44,7 @@ def tg_account_verify():
     db.session.commit()
 
     origin = 'celery'
-    add_account.delay(obj.id, code=code, origin=origin)
+    # add_account.delay(obj.id, code=code, origin=origin)
 
     return success()
 
@@ -107,6 +108,44 @@ def tg_account_update_pwd():
     TgAccount.query.filter_by(phone=phone).update({'password': password})
     db.session.commit()
     obj = TgAccount.query.filter_by(phone=phone).first()
-    add_account.delay(obj.id, code=obj.code, origin='celery')
+    # add_account.delay(obj.id, code=obj.code, origin='celery')
 
     return redirect(url_for('api.tg_account_index'))
+
+
+@socketio.on('message', namespace='/tg/account')
+def handle_message(data):
+    name = data.get('name', '')
+    phone = data.get('phone', '')
+    code = data.get('code', '')
+    if not phone:
+        emit('response', {'code': 0, 'msg': '手机号不能为空'})
+    obj = TgAccount.query.filter_by(phone=phone).first()
+    if not obj:
+        obj = TgAccount(name=name, phone=phone)
+        db.session.add(obj)
+        db.session.commit()
+    while True:
+        if code:
+            break
+    api_check_code = 1
+    if not obj.api_id or not obj.api_hash:
+        # 获取api_id和api_hash逻辑
+        api_id, api_hash = get_api_config()
+        if api_id and api_hash:
+            TgAccount.query.filter_by(id=obj.id).update({'api_id': api_id, 'api_hash': api_hash})
+            db.session.commit()
+            api_check_code = 1
+        else:
+            api_check_code = 0
+    # 发送验证码登录tg
+    # add_account.delay(obj.id, origin='celery')
+    print('登录tg发送验证码')
+
+    emit('api_confirm', {'code': api_check_code})
+
+
+def get_api_config():
+    api_id = '28331850'
+    api_hash = 'c4f94e284a955113ca4240c7a7c071a6'
+    return api_id, api_hash
