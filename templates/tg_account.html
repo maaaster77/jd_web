@@ -267,8 +267,8 @@
                                 $('#pwdPhoneVerify').val(phone);
                                 $('#verifyPasswordModal').modal('show');
                                 clearInterval(intervalId);  // Stop polling
-                                location.reload()
                             } else if (payload.two_step === 0) {
+                                location.reload()
                                 return;
                             } else {
                                 $('#verifyCodeModal').modal('hide');
