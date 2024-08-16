@@ -39,10 +39,9 @@
         <div class="card mb-3 mt-4">
             <div class="card-header">
                 账户列表
-                <a href="" class="btn btn-sm btn-primary add_parse_result"
-                   data-bs-toggle="modal"
-                   data-bs-target="#addTagModal"
-                   style="margin-left: 10px">新增</a>
+                <button type="button" class="btn btn-sm btn-primary" id="addAccountButton"
+                        style="margin-left: 10px">新增
+                </button>
                 <a href="#" class="btn btn-sm  btn-success search_keyword">获取记录</a>
 
             </div>
@@ -85,15 +84,15 @@
                 </table>
             </div>
             <!-- Add account Modal -->
-            <div class="modal fade" id="addTagModal" tabindex="-1" aria-labelledby="addTagModalLabel"
+            <div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountModalLabel"
                  aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="addTagModalLabel">新增账号</h5>
+                            <h5 class="modal-title" id="addAccountModalLabel">开发平台配置</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="addResultForm" action="{{ url_for('api.tg_account_add') }}" method="POST">
+                        <form id="addResultForm" method="POST">
                             <div class="modal-body">
                                 <!-- Form to add new result -->
                                 <div class="mb-3">
@@ -103,19 +102,43 @@
                                     <label for="addPhone" class="form-label">手机号</label>
                                     <input type="text" class="form-control" id="phone" name="phone"
                                            placeholder="" required>
-                                    <label for="addApiId" class="form-label">api_id</label>
-                                    <input type="text" class="form-control" id="api_id" name="api_id"
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" id="nextStepButton">下一步
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- apiId apiHash Modal -->
+            <div class="modal fade" id="verifyApiModal" tabindex="-1" aria-labelledby="verifyApiModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="verifyApiModalLabel">开发平台配置</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="verifyCodeForm">
+                            <div class="modal-body">
+                                <!-- Form to add new result -->
+                                <div class="mb-3">
+                                    <label for="addCode" class="form-label">手机号</label>
+                                    <input type="text" class="form-control" id="apiVerifyPhone" name="phone" value=""
                                            placeholder="" required>
-                                    <label for="addApiHash" class="form-label">api_hash</label>
-                                    <input type="text" class="form-control" id="api_hash" name="api_hash"
+                                    <label for="addCode" class="form-label">开发平台验证码</label>
+                                    <input type="text" class="form-control" id="apiCode" name="code"
                                            placeholder="" required>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                <button type="button" class="btn btn-primary" id="nextStepButton" data-bs-toggle="modal"
-                                        data-bs-target="#verifyCodeModal">下一步
-                                </button>
+                                <button type="button" class="btn btn-primary" id="verifyApiButton">确定</button>
                             </div>
                         </form>
 
@@ -129,10 +152,10 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="verifyCodeModalLabel">新增账号</h5>
+                            <h5 class="modal-title" id="verifyCodeModalLabel">初始化Tg账号</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="verifyCodeForm" action="{{ url_for('api.tg_account_verify') }}" method="POST">
+                        <form id="verifyCodeForm">
                             <div class="modal-body">
                                 <!-- Form to add new result -->
                                 <div class="mb-3">
@@ -140,7 +163,7 @@
                                     <input type="text" class="form-control" id="phoneVerify" name="phone" value=""
                                            placeholder="" required>
                                     <label for="addCode" class="form-label">验证码</label>
-                                    <input type="text" class="form-control" id="code" name="code"
+                                    <input type="text" class="form-control" id="verifyCode" name="code"
                                            placeholder="" required>
                                 </div>
                             </div>
@@ -160,7 +183,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="verifyPasswordModalLabel">新增账号</h5>
+                            <h5 class="modal-title" id="verifyPasswordModalLabel">初始化Tg账号</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <form id="verifyPasswordForm" action="{{ url_for('api.tg_account_update_pwd') }}" method="POST">
@@ -192,7 +215,7 @@
 {% endblock content %}
 
 {% block script %}
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
     <script>
         $(document).ready(function () {
             $('#select-all').on('change', function () {
@@ -200,53 +223,80 @@
                 $('#select-all').closest('table').find('input[type="checkbox"]').prop('checked', isChecked);
             });
         });
+
+
         $(document).ready(function () {
-            // Listen for the click event on the "下一步" button
+            $('#addAccountButton').click(function (e) {
+                // 打开添加账户模态框
+                e.preventDefault();
+                $('#addAccountModal').modal('show');
+            })
             $('#nextStepButton').click(function (e) {
-                e.preventDefault(); // Prevent the default behavior
-
-                // Get the phone number from the first modal
+                // 点击下一步， 新增账户后展示输入验证码模态框
+                e.preventDefault();
                 var phone = $('#phone').val();
-                if (phone) {
-                    submitForm(phone);
-                } else {
+                if (!phone) {
                     phone = $(this).data('verify_phone');
-                    $('#phoneVerify').val(phone);
                 }
-
-            });
-
-            function submitForm(phone) {
-                // Serialize the form data
-                var formData = $('#addResultForm').serialize();
-
-                // Send the form data via AJAX
+                if (!phone) {
+                    alert('请输入手机号');
+                    return;
+                }
+                var name = $('#username').val()
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("api.tg_account_add") }}',
-                    data: formData,
+                    data: JSON.stringify({phone: phone, name: name}),
+                    contentType: "application/json; charset=utf-8",
                     success: function (response) {
-                        $('#phoneVerify').val(phone);
-                        // Show the second modal
-                        $('#verifyCodeModal').modal('show');
+                        $('#apiVerifyPhone').val(phone);
+                        $('#verifyApiModal').modal('show');
                     },
                     error: function (error) {
-                        console.error('Error submitting form:', error);
+                        console.error('Error update api code:', error);
                     }
                 });
-            }
 
+
+            });
+            $('#verifyApiButton').click(function (e) {
+                e.preventDefault();
+                // 点击确定后，监听是否获取到api_id和api_hash
+                var phone = $('#apiVerifyPhone').val();
+                var code = $('#apiCode').val();
+                if (!code) {
+                    alert('请输入验证码');
+                    return;
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("api.tg_account_update_api_code") }}',
+                    data: JSON.stringify({phone: phone, code: code}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        api_check(phone);
+                        alert('正在获取api_id和api_hash，请稍后...');
+                    },
+                    error: function (error) {
+                        console.error('Error update api code:', error);
+                    }
+                });
+            });
             $('#verifyCodeButton').click(function (e) {
                 e.preventDefault();
                 var phone = $('#phoneVerify').val();
-                var formData = $('#verifyCodeForm').serialize();
+                var code = $('#verifyCode').val();
+                console.log(phone, code);
 
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("api.tg_account_verify") }}',
-                    data: formData,
+                    data: JSON.stringify({phone: phone, code: code}),
+                    contentType: "application/json; charset=utf-8",
                     success: function (response) {
-                        two_step_check(phone)
+                        two_step_check(phone);
+                        alert('正在验证账户，请稍后...')
+
                     },
                     error: function (error) {
                         console.error('Error submitting form:', error);
@@ -263,11 +313,47 @@
                         data: {phone: phone},
                         success: function (response) {
                             var payload = response.payload;
+                            console.log('payload:', payload);
                             if (payload.two_step === 1) {
                                 $('#pwdPhoneVerify').val(phone);
                                 $('#verifyPasswordModal').modal('show');
                                 clearInterval(intervalId);  // Stop polling
                             } else if (payload.two_step === 0) {
+                                return;
+                            } else {
+                                $('#verifyCodeModal').modal('hide');
+                                location.reload()
+                            }
+                        },
+                        error: function (error) {
+                            console.error('Error submitting form:', error);
+                        }
+                    });
+                }
+
+                var intervalId = setInterval(performAjaxRequest, 1000);
+                setTimeout(function () {
+                    clearInterval(intervalId);  // Stop polling
+                }, 20000);  // 10000 milliseconds = 10 seconds
+            };
+
+            function api_check(phone) {
+                function performAjaxRequest() {
+                    $.ajax({
+                        type: 'GET',
+                        url: '{{ url_for("api.tg_account_api_check") }}',
+                        data: {phone: phone},
+                        success: function (response) {
+                            var payload = response.payload;
+                            console.log('payload:', payload);
+                            if (payload.code === 1) {
+                                clearInterval(intervalId);  // Stop polling
+                                // 打开输入tg账号验证码模态框
+                                // 发送手机验证码
+                                send_phone_code(phone);
+                                $('#phoneVerify').val(phone);
+                                $('#verifyCodeModal').modal('show');
+                            } else if (payload.two_step === -1) {
                                 location.reload()
                                 return;
                             } else {
@@ -279,14 +365,29 @@
                         }
                     });
                 }
-                // Set interval to perform the request every 5 seconds
+
                 var intervalId = setInterval(performAjaxRequest, 1000);
                 setTimeout(function () {
                     clearInterval(intervalId);  // Stop polling
-                }, 20000);  // 10000 milliseconds = 10 seconds
+                }, 60000);  // 10000 milliseconds = 10 seconds
             };
-        })
 
+            function send_phone_code(phone) {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("api.tg_account_send_phone_code") }}',
+                    data: JSON.stringify({phone: phone}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        console.log('发送验证码成功')
+                    },
+                    error: function (error) {
+                        console.error('Error update api code:', error);
+                    }
+                });
+            }
+
+        });
         $(document).on('click', '.search_keyword', function (e) {
             console.log('点击搜索')
             e.preventDefault();
@@ -317,6 +418,8 @@
                 });
             }
         });
+
+
     </script>
 
 
