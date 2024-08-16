@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 import os
+import time
 
 from telethon import TelegramClient, errors
 
@@ -138,77 +139,6 @@ def fetch_group_recent_user_info(origin='celery'):
 
 
 @celery.task
-def add_account(account_id, code='', origin='celery'):
-    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
-    if not tg_account:
-        return
-    api_id = tg_account.api_id
-    api_hash = tg_account.api_hash
-    phone = tg_account.phone
-    if not api_id or not api_hash or not phone:
-        return
-
-    session_dir = f'{app.static_folder}/utils'
-    session_dir = f'{session_dir}/{tg_account.name}'
-    os.makedirs(session_dir, exist_ok=True)
-    session_name = f'{session_dir}/jd_{origin}.session'
-
-    async def start_session(session_name):
-        client = TelegramClient(session_name, api_id, api_hash)
-        if not client.is_connected():
-            await client.connect()
-        if not code:
-            for i in range(3):
-                res = await client.send_code_request(phone, force_sms=False)
-                if res:
-                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                        'phone_code_hash': res.phone_code_hash,
-                    })
-                    break
-        else:
-            try:
-                user = await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
-            except errors.SessionPasswordNeededError:
-                if tg_account.password:
-                    user = await client.sign_in(phone=phone, password=tg_account.password)
-                else:
-                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({'two_step': 1})
-                    client.disconnect()
-                    return
-            except Exception as e:
-                logger.info('add_account error: {}'.format(e))
-                client.disconnect()
-                return
-            print('user', user)
-            if user:
-                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                    'status': TgAccount.StatusType.JOIN_SUCCESS,
-                    'username': user.username,
-                    'user_id': user.id,
-                    'phone': user.phone,
-                    'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
-                    'phone_code_hash': ''
-                })
-            else:
-                TgAccount.query.filter(TgAccount.id == tg_account.id).update({
-                    'status': TgAccount.StatusType.JOIN_FAIL
-                })
-        client.disconnect()
-
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(start_session(session_name))
-        loop.close()
-    except Exception as e:
-        # logger.info('add_account error: {}'.format(e))
-        pass
-
-    db.session.commit()
-    return
-
-
-@celery.task
 def fetch_person_chat_history(account_id, origin='celery'):
     tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
     if not tg_account:
@@ -276,7 +206,132 @@ def fetch_person_chat_history(account_id, origin='celery'):
         tg.client.loop.run_until_complete(get_person_dialog_list())
 
 
+@celery.task
+def send_phone_code(account_id, origin='celery'):
+    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
+    if not tg_account:
+        return
+    session_name = get_session_name(tg_account.name, origin)
+    api_id = tg_account.api_id
+    api_hash = tg_account.api_hash
+    phone = tg_account.phone
+    if not api_id or not api_hash or not phone:
+        return
+
+    async def send_code():
+        if not client.is_connected():
+            await client.connect()
+        for i in range(5):
+            try:
+                res = await client.send_code_request(phone, force_sms=False)
+                if res:
+                    TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                        'phone_code_hash': res.phone_code_hash,
+                    })
+                    db.session.commit()
+                    break
+            except Exception as e:
+                logger.info('send_code_request error: {}'.format(e))
+            time.sleep(1)
+        if client.is_connected():
+            client.disconnect()
+
+    client = TelegramClient(session_name, api_id, api_hash)
+
+    for i in range(3):
+        try:
+            client.loop.run_until_complete(send_code())
+            break
+        except Exception as e:
+            logger.info('send_code_request error: {}'.format(e))
+            time.sleep(1)
+    db.session.commit()
+    return
+
+
+@celery.task
+def login_tg_account(account_id, origin='celery'):
+    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
+    if not tg_account:
+        return
+    session_name = get_session_name(tg_account.name, origin)
+    api_id = tg_account.api_id
+    api_hash = tg_account.api_hash
+    phone = tg_account.phone
+    code = tg_account.code
+    if not api_id or not api_hash or not phone or not code:
+        return
+
+    async def start_login():
+        if not client.is_connected():
+            await client.connect()
+        user = None
+        try:
+            if tg_account.two_step:
+                user = await client.sign_in(phone=phone, password=tg_account.password)
+            else:
+                user = await client.sign_in(phone=phone, code=code, phone_code_hash=tg_account.phone_code_hash)
+        except errors.SessionPasswordNeededError:
+            TgAccount.query.filter(TgAccount.id == tg_account.id).update({'two_step': 1})
+            db.session.commit()
+            if client.is_connected():
+                client.disconnect()
+            return
+        except Exception as e:
+            logger.info('add_account error: {}'.format(e))
+            if client.is_connected():
+                client.disconnect()
+            return
+        print('user', user)
+        if user:
+            TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                'status': TgAccount.StatusType.JOIN_SUCCESS,
+                'username': user.username,
+                'user_id': user.id,
+                'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
+                'phone_code_hash': '',
+                'code': '',
+                'api_code': '',
+                'two_step': 0,
+            })
+        else:
+            TgAccount.query.filter(TgAccount.id == tg_account.id).update({
+                'status': TgAccount.StatusType.JOIN_FAIL,
+                'phone_code_hash': '',
+                'code': '',
+                'api_code': '',
+                'two_step': 0,
+            })
+
+        if client.is_connected():
+            client.disconnect()
+
+    client = TelegramClient(session_name, api_id, api_hash)
+
+    for i in range(3):
+        try:
+            client.loop.run_until_complete(start_login())
+            break
+        except Exception as e:
+            print('login error:', e)
+            time.sleep(1)
+
+    db.session.commit()
+    return
+
+
+def get_session_name(name, origin):
+    session_dir = f'{app.static_folder}/utils'
+    session_dir = f'{session_dir}/{name}'
+    os.makedirs(session_dir, exist_ok=True)
+    session_name = f'{session_dir}/jd_{origin}.session'
+    return session_name
+
+
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=True)
-    # add_account(3, code='28381')
-    fetch_person_chat_history(3)
+    # send_phone_code(24)
+    # 验证码登录
+    # login_tg_account(24)
+    # 密码登录
+    login_tg_account(24)

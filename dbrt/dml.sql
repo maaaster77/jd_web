@@ -250,3 +250,8 @@ alter table tg_account add `api_hash` varchar(64) not null default '' comment 'a
 
 alter table tg_account add `two_step` int not null default 0 comment '两步验证';
 alter table tg_account add `code` varchar(16) not null default 0 comment '验证码';
+
+
+# code的默认值错了，修改一下，避免影响使用
+alter table tg_account change `code` `code` varchar(16) not null default '' comment '验证码';
+alter table tg_account add `api_code` varchar(16) not null default '' comment '平台验证码';
