@@ -12,6 +12,7 @@ def deal_spider_chemical(platform_id):
         return
     i = 0
     for data in spider.search_query(page=app.config['SPIDER_DEFAULT_PAGE']):
+        print('id', platform_id)
         print('data', data)
         # if ChemicalPlatformProductInfo.query.filter(
         #         ChemicalPlatformProductInfo.product_name == data['product_name'],
@@ -24,8 +25,8 @@ def deal_spider_chemical(platform_id):
                                           contact_number=data['contact_number'], qq_number=data.get('qq_number', ''))
         db.session.add(obj)
         db.session.flush()
-        i += 1
-        if i % 20 == 0:
-            db.session.commit()
+        # i += 1
+        # if i % 20 == 0:
+        db.session.commit()
 
     db.session.commit()

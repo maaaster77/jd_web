@@ -2,8 +2,8 @@ from jd.services.spider.tg import TgService
 
 
 def run():
-    # for origin in ['job', 'celery', 'web']:
-    for origin in ['web']:
+    for origin in ['job', 'celery', 'web']:
+    # for origin in ['web']:
         tg = TgService.init_tg(origin)
 
         async def get_me():

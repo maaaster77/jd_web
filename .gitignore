@@ -169,3 +169,6 @@ log/
 /config_local.py
 
 flower_db.db
+flower
+log.txt
+config.py

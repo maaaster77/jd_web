@@ -33,10 +33,10 @@ echo "启动celery first"
 nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
 
 echo "启动celery telegram"
-nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram --loglevel=info > log/celery_telegram_out.txt 2>&1 &
+nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
 
-echo "启动flower"
-nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True --db="flower_db" > log/celery_flower.txt 2>&1 &
+# echo "启动flower"
+# nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True --db="flower_db" > log/celery_flower.txt 2>&1 &
 
 
 # 启动flask
@@ -44,8 +44,8 @@ echo "启动web"
 nohup python -m web   > log/flask_out.txt 2>&1 &
 echo "web: http://127.0.0.1:8981"
 
-# 启动tg聊天记录抓取ojb
+# # 启动tg聊天记录抓取ojb
 echo "启动tg聊天记录抓取ojb"
 nohup python -m scripts.job chat_history > log/chat_history.txt 2>&1 &
 
-echo 'End'
+# echo 'End'

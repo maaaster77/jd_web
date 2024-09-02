@@ -78,7 +78,7 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
                                 page=None,
                                 page_size=None, search_account_id_list=None):
     # 需要修改sql_mode
-    # set sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+    # set sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
     query = db.session.query(
         TgGroupChatHistory.id,
         TgGroupChatHistory.chat_id,

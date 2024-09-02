@@ -48,6 +48,7 @@ class TgService:
                 session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
             )
         except Exception as e:
-            logger.info(e)
+            logger.info("init error",e)
+            print("here",e)
             return None
         return tg

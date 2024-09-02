@@ -23,9 +23,9 @@ GOOGLE_SPIDER_PROXIES = {}
 
 # Tg配置
 TG_CONFIG = {
-    "api_id": "",
-    "api_hash": "",
-    "session_name": "jd.session",
+    "api_id": "26453858",
+    "api_hash": "94aa8f0de4d11f9721233e996baf1016",
+    "session_name": "telsession",
     "celery_session_name": "jd_celery.session",
     "web_session_name": "jd_web.session",
     "job_session_name": "jd_job.session",

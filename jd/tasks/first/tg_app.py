@@ -58,6 +58,8 @@ def tg_app_init(phone):
             a = first_li.find_element(By.TAG_NAME, "a")
             a.click()
         time.sleep(5)
+        driver.save_screenshot('page.png')
+
         form = driver.find_element(By.ID, "app_edit_form")
         # 分割文本到每一行
         text = form.text
@@ -78,4 +80,4 @@ def tg_app_init(phone):
 
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=False)
-    tg_app_init('+56990552148')
+    tg_app_init('+573001824960')

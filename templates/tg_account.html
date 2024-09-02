@@ -106,7 +106,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                <button type="button" class="btn btn-primary" id="nextStepButton">下一步
+                                <button type="button" class="btn btn-primary" id="nextStepButton1">下一步
                                 </button>
                             </div>
                         </form>
@@ -231,7 +231,7 @@
                 e.preventDefault();
                 $('#addAccountModal').modal('show');
             })
-            $('#nextStepButton').click(function (e) {
+            $('#nextStepButton1').click(function (e) {
                 // 点击下一步， 新增账户后展示输入验证码模态框
                 e.preventDefault();
                 var phone = $('#phone').val();
