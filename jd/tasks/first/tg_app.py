@@ -2,26 +2,42 @@ import time
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 from jCelery import celery
 from jd import app, db
 from jd.models.tg_account import TgAccount
+from jd.services.proxy import OxylabsProxy, create_proxyauth_extension
 
 
 @celery.task
 def tg_app_init(phone):
     with app.app_context():
+        # 设置代理服务器
+        proxyauth_plugin_path = create_proxyauth_extension(
+            proxy_host=app.config['OXYLABS_HOST'],
+            proxy_port=app.config['OXYLABS_PORT'],
+            proxy_username=app.config['OXYLABS_USERNAME'],
+            proxy_password=app.config['OXYLABS_PASSWORD']
+        )
+
         chrome_options = Options()
+        chrome_options.add_extension(proxyauth_plugin_path)
+
         chrome_options.add_argument('--headless')  # 启动无头模式
         chrome_options.add_argument('--disable-gpu')  # 一些系统可能需要禁用 GPU 加速
         chrome_options.add_argument('--no-sandbox')  # Bypass OS
-        service = Service()  # 默认情况下，Service 将查找环境变量中的 ChromeDriver
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        # driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=chrome_options)
         url = 'https://my.telegram.org/auth'
-        driver.get(url)
+        # url = 'https://httpbin.org/ip'  # 请求当前使用的ip
+        try:
+            driver.get(url)
+        except Exception as e:
+            print(f'请求不通该url:{url}')
+            driver.quit()
+            return
+        page_source = driver.page_source
+        print(f'url:{url}, page:{page_source}')
         time.sleep(1)
         send_form = driver.find_element(By.ID, "my_send_form")
         phone_input = send_form.find_element(By.ID, "my_login_phone")
@@ -33,7 +49,7 @@ def tg_app_init(phone):
         code = ''
         for i in range(60):
             obj = TgAccount.query.filter_by(phone=phone).first()
-            print(f'第{i+1}次获取验证码...')
+            print(f'第{i + 1}次获取验证码...')
             if obj.api_code:
                 code = obj.api_code
                 break
@@ -75,7 +91,6 @@ def tg_app_init(phone):
             TgAccount.api_hash: api_hash
         })
         db.session.commit()
-
 
 
 if __name__ == '__main__':
