@@ -91,6 +91,7 @@ def fetch_group_user_info(chat_id, user_id, nick_name, username, origin='celery'
                     with open(file_path, 'wb') as file:
                         file.write(response.content)
                 else:
+                    file_path = ''
                     print(f"Failed to download photo. Status code: {response.status_code}")
             except Exception as e:
                 print(f'{user_id}: 下载头像失败：{e}')
