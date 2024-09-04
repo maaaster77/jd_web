@@ -4,6 +4,7 @@ import logging
 import os
 import time
 
+import requests
 from telethon import TelegramClient, errors
 
 from jCelery import celery
@@ -76,9 +77,31 @@ def fetch_group_user_info(chat_id, user_id, nick_name, username, origin='celery'
         data = TelegramSpider().search_query(url)
         if not data:
             return
+        photo_url = data['photo_url']
+        if photo_url:
+            # 下载图片
+            try:
+                response = requests.get(photo_url)
+                image_path = os.path.join(app.static_folder, 'images/avatar')
+                os.makedirs(image_path, exist_ok=True)
+                file_path = f'{image_path}/{user_id}.jpg'
+                # 检查请求是否成功
+                if response.status_code == 200:
+                    # 保存图片到本地
+                    with open(file_path, 'wb') as file:
+                        file.write(response.content)
+                else:
+                    file_path = ''
+                    print(f"Failed to download photo. Status code: {response.status_code}")
+            except Exception as e:
+                print(f'{user_id}: 下载头像失败：{e}')
+                file_path = ''
+        else:
+            file_path = ''
+
         obj = TgGroupUserInfo(chat_id=chat_id, user_id=user_id, nickname=nick_name,
                               username=username,
-                              desc=data['desc'], photo=data['photo_url'])
+                              desc=data['desc'], photo=data['photo_url'], avatar_path=file_path)
         db.session.add(obj)
         db.session.flush()
         db.session.commit()

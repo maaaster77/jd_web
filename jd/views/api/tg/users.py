@@ -40,7 +40,7 @@ def tg_group_user_list():
         'chat_id': group_user.chat_id,
         'nickname': group_user.nickname,
         'username': group_user.username,
-        'photo': group_user.photo,
+        'photo': group_user.avatar_path,
         'desc': group_user.desc,
         'group_name': chat_room.get(group_user.chat_id, '')
     } for group_user in group_user_list]

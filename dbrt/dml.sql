@@ -255,3 +255,7 @@ alter table tg_account add `code` varchar(16) not null default 0 comment '验证
 # code的默认值错了，修改一下，避免影响使用
 alter table tg_account change `code` `code` varchar(16) not null default '' comment '验证码';
 alter table tg_account add `api_code` varchar(16) not null default '' comment '平台验证码';
+
+# 头像本地地址
+alter table tg_group_user_info add avatar_path    varchar(1024) default ''                not null comment '头像本地地址';
+

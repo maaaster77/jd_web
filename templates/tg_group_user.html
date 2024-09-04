@@ -112,7 +112,7 @@
                             <td style="width: 100px">
                                 {% if word.photo %}
                                     <img style="width: 100px; height: 100px"
-                                         src="{{ word.photo }}" alt="">
+                                         src="{{ url_for('static', filename=word.photo) }}" alt="">
                                 {% endif %}
                             </td>
                         </tr>
