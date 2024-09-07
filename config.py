@@ -39,3 +39,9 @@ TG_CONFIG = {
 
 # 默认爬取的页数
 SPIDER_DEFAULT_PAGE = 1
+
+
+OXYLABS_USERNAME = 'customer-hunyun__wgIH3-sessid-0008875723-sesstime-10'
+OXYLABS_PASSWORD = 'Wasd12345678+'
+OXYLABS_HOST = 'pr.oxylabs.io'
+OXYLABS_PORT = '7777'
