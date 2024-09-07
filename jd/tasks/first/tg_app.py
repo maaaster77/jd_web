@@ -14,6 +14,7 @@ from jd.services.proxy import OxylabsProxy, create_proxyauth_extension
 def tg_app_init(phone):
     with app.app_context():
         # 设置代理服务器
+        chrome_options = Options()
         proxyauth_plugin_path = create_proxyauth_extension(
             proxy_host=app.config['OXYLABS_HOST'],
             proxy_port=app.config['OXYLABS_PORT'],
@@ -21,7 +22,6 @@ def tg_app_init(phone):
             proxy_password=app.config['OXYLABS_PASSWORD']
         )
 
-        chrome_options = Options()
         chrome_options.add_extension(proxyauth_plugin_path)
 
         chrome_options.add_argument('--headless')  # 启动无头模式
@@ -30,14 +30,20 @@ def tg_app_init(phone):
         driver = webdriver.Chrome(options=chrome_options)
         url = 'https://my.telegram.org/auth'
         # url = 'https://httpbin.org/ip'  # 请求当前使用的ip
-        try:
-            driver.get(url)
-        except Exception as e:
-            print(f'请求不通该url:{url}')
+        for i in range(5):
+            try:
+                driver.get(url)
+                page_source = driver.page_source
+                print(f'url:{url}, page:{page_source}')
+                if 'Authorization' in page_source:
+                    break
+            except Exception as e:
+                print(f'请求不通该url:{url}， times:{i+1}')
+            time.sleep(1)
+            continue
+        if i == 5:
             driver.quit()
             return
-        page_source = driver.page_source
-        print(f'url:{url}, page:{page_source}')
         time.sleep(1)
         send_form = driver.find_element(By.ID, "my_send_form")
         phone_input = send_form.find_element(By.ID, "my_login_phone")
@@ -95,4 +101,4 @@ def tg_app_init(phone):
 
 if __name__ == '__main__':
     app.ready(db_switch=True, web_switch=False, worker_switch=False)
-    tg_app_init('+573001824960')
+    tg_app_init('+56990552148')

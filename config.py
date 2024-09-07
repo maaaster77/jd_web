@@ -41,7 +41,7 @@ TG_CONFIG = {
 SPIDER_DEFAULT_PAGE = 1
 
 
-OXYLABS_USERNAME = 'customer-hunyun__wgIH3-sessid-0741407640-sesstime-10'
+OXYLABS_USERNAME = 'customer-hunyun__wgIH3-sessid-0008875723-sesstime-10'
 OXYLABS_PASSWORD = 'Wasd12345678+'
-OXYLABS_HOST = 'cnt9t1is.com'
-OXYLABS_PORT = '8000'
+OXYLABS_HOST = 'pr.oxylabs.io'
+OXYLABS_PORT = '7777'

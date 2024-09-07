@@ -61,7 +61,7 @@ class OxylabsProxy:
 
 
 # 创建chrome浏览器插件的方法
-def create_proxyauth_extension(proxy_host, proxy_port, proxy_username, proxy_password, scheme='http', plugin_path=None):
+def create_proxyauth_extension(proxy_host, proxy_port, proxy_username, proxy_password, scheme='https', plugin_path=None):
     """Proxy Auth Extension
     args:
         proxy_host (str): domain or ip address, ie proxy.domain.com
