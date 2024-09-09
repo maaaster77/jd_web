@@ -39,9 +39,11 @@ def join_group(group_name, origin='celery'):
                     'status': TgGroup.StatusType.JOIN_FAIL
                 }
             else:
+                channel_full = await tg.get_full_channel(chat_id)
                 update_info = {
                     'status': TgGroup.StatusType.JOIN_SUCCESS,
-                    'chat_id': chat_id
+                    'chat_id': chat_id,
+                    'desc': channel_full.get("channel_description", '')
                 }
             TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()

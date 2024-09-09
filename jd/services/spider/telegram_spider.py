@@ -219,8 +219,7 @@ class TelegramAPIs(object):
                 elif isinstance(chat, Chat):
                     channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
-                    # channel_description = channel_full.full_chat.about
-                    channel_description = ""
+                    channel_description = channel_full.full_chat.about
                     username = None
                     megagroup = True
                 else:
@@ -527,6 +526,30 @@ class TelegramAPIs(object):
 
         return result
 
+    async def get_full_channel(self, chat_id):
+        chat = await self.get_dialog(chat_id)
+        if not chat:
+            return {}
+        channel_full = await self.client(GetFullChannelRequest(chat))
+        if not channel_full:
+            return {}
+        member_count = channel_full.full_chat.participants_count
+        channel_description = channel_full.full_chat.about
+        username = channel_full.chats[0].username
+        megagroup = channel_full.chats[0].megagroup
+        out = {
+            "id": chat.id,
+            "title": chat.title,
+            "username": username,
+            "megagroup": "channel" if megagroup else "group",
+            "member_count": member_count,
+            "channel_description": channel_description,
+            "is_public": 1 if username else 0,
+            "join_date": chat.date.strftime("%Y-%m-%d %H:%M:%S+%Z"),
+        }
+        return out
+
+
 
 def test_tg_spider():
     spider = TelegramSpider()
@@ -548,7 +571,7 @@ if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     tg = TelegramAPIs()
     config_js = app.config['TG_CONFIG']
-    session_name = f'{app.static_folder}/utils/test123/{config_js.get("job_session_name")}'
+    session_name = f'{app.static_folder}/utils/{config_js.get("web_session_name")}'
     api_id = config_js.get("api_id")
     api_hash = config_js.get("api_hash")
     proxy = config_js.get("proxy", {})
@@ -564,15 +587,18 @@ if __name__ == '__main__':
     )
 
 
-    async def get_me():
-        me = await tg.get_me()
-        print(f'me: {me}')
-
+    # async def get_me():
+    #     me = await tg.get_me()
+    #     print(f'me: {me}')
 
     # async def get_group_list():
-    #     group_list = await tg.get_person_dialog_list()
+    #     """
+    #     group_list: [{'result': 'success', 'reason': 'ok', 'data': {'id': 1610505522, 'title': '巴域商业中心超市', 'username': 'chaoshi99999', 'megagroup': 'channel', 'member_count': 4184, 'channel_description': '', 'is_public': 1, 'join_date': '2024-08-01 06:38:37+UTC', 'unread_count': 4425}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1857812395, 'title': '钉钉接码🌏京东接码💗美团接码🌏陌陌接码 @Qk66678 @ppo995@J5333@karamsang@truetrueaccbobi@qq5914 @maihao99bot@tuitehaocc8tuitehaocc8tuitehaocc@karams', 'username': 'kef43433', 'megagroup': 'group', 'member_count': 12478, 'channel_description': '', 'is_public': 1, 'join_date': '2024-08-01 06:34:43+UTC', 'unread_count': 34}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1270985546, 'title': '大咕咕咕鸡', 'username': 'dagudu', 'megagroup': 'group', 'member_count': 1955, 'channel_description': '大咕咕咕鸡，微博知名博主，叙事诗人，当代严肃文学特师，月入2300，代表作有《黄浦江有话讲》《一次突如其来的性生活》等，他的文章风格独特，自成一派，值得一看。\n\n特师文集： mindfucking.gitbook.io/daguguguji\n\n人间动物园： @renjiandongwuyuan\n\n频道维护猫： @lidamao_bot\n\n感谢 @RSStT_Bot 提供支持', 'is_public': 1, 'join_date': '2024-08-02 12:45:36+UTC', 'unread_count': 9}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1076212650, 'title': '@zhongwen 中文语言安装包🅥汉化翻译', 'username': None, 'megagroup': 'group', 'member_count': 258534, 'channel_description': '【华人在外】广告介绍 @Guanggao\n华人百万社群 @huaren\n50万人供需发布频道 @daifa\n91国产社区 @gaoqing\n广告自助发布 @C4bot\n🔍AV搜片群 @AVpian\n🔎搜群神器 @sosuo\n吃瓜搞笑爆料 @Chigua\n开车频道群组 @kaiche\n招聘频道 @zhaopin\n求职甩人 @qiuzhi\n免费群管机器人 @qunbot\n✅中文安装 @zhongwen\n\n☎️唯一广告负责联系人 @DDDDDD', 'is_public': 0, 'join_date': '2024-07-31 05:42:26+UTC', 'unread_count': 3}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1825747029, 'title': '玩偶姐姐 𝙃𝙤𝙣𝙜𝙆𝙤𝙣𝙜𝘿𝙤𝙡𝙡_𝙏𝙑', 'username': 'HongKongDoll_Public', 'megagroup': 'group', 'member_count': 11701, 'channel_description': '', 'is_public': 1, 'join_date': '2024-08-06 13:32:15+UTC', 'unread_count': 0}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1905420033, 'title': '上头电子烟原料 依托咪酯 依托终结者 化学交流', 'username': 'ulae4888', 'megagroup': 'group', 'member_count': 318, 'channel_description': '上头电子烟原料 依托咪酯 依托终结者 化学交流', 'is_public': 1, 'join_date': '2024-08-06 13:31:51+UTC', 'unread_count': 0}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1872484668, 'title': '海外引流 | 海外获客丨FB引流丨脸书广告丨@liubifafa @XNZ6625 @nk52020@dj9400 @duo788@uup99887 @ppo995@xone88@xincheng8887@kka995', 'username': 'dnaslkdas', 'megagroup': 'group', 'member_count': 30134, 'channel_description': '', 'is_public': 1, 'join_date': '2024-08-01 06:35:26+UTC', 'unread_count': 0}}, {'result': 'success', 'reason': 'ok', 'data': {'id': 1195428755, 'title': 'ShadowsocksVPN', 'username': 'vpnshadowsocks', 'megagroup': 'group', 'member_count': 1537, 'channel_description': 'Простой канал без всяких дополнительных данных. Только VPN. И приятное оформление для глаз\n\n💬 Наш чатик: @vpnShadowsockss\nReklama \n📢 По поводу вп писать сюда: \n@Creator_mann \n\n❤﷽Aใhล๓dนใเใใลh﷽❤', 'is_public': 1, 'join_date': '2024-08-01 06:37:29+UTC', 'unread_count': 0}}]
+    #
+    #     :return:
+    #     """
     #     result = []
-    #     for group in group_list:
+    #     async for group in tg.get_dialog_list():
     #         result.append(group)
     #     print('group_list:', result)
 
@@ -611,5 +637,12 @@ if __name__ == '__main__':
     #     result = await tg.get_chatroom_user_info(group_id, '小胖')
     #     print(result)
 
+    async def get_chat(chat_id):
+        chat = await tg.get_dialog(chat_id)
+        channel_full = await tg.client(GetFullChannelRequest(chat))
+
+        print(channel_full)
+
+
     with tg.client:
-        tg.client.loop.run_until_complete(get_me())
+        tg.client.loop.run_until_complete(get_chat(1270985546))

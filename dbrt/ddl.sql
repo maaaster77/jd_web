@@ -226,3 +226,24 @@ CREATE TABLE `tg_account` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `udx_phone` (`phone`)
 ) ENGINE=InnoDB  CHARSET=utf8mb4 COMMENT='tg账号';
+
+
+CREATE TABLE `tg_group_tag` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_id` int(11) NOT NULL DEFAULT '0' COMMENT 'tg_group.id',
+  `tag_id` int(11) NOT NULL DEFAULT '0' COMMENT '标签id',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_parse_tag` (`group_id`,`tag_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='tg群组-标签关系表';
+
+CREATE TABLE `tg_user_tag` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tg_user_id` int(11) NOT NULL DEFAULT '0' COMMENT 'tg_group_user.id',
+  `tag_id` int(11) NOT NULL DEFAULT '0' COMMENT '标签id',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_parse_tag` (`tg_user_id`,`tag_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='tg群组用户-标签关系表';

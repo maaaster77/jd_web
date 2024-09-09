@@ -74,11 +74,26 @@
                                    value="{{ default_search_desc }}">
                         </div>
                     </div>
+{#                    <div class="col-md-3">#}
+{#                        <div class="form-group d-flex align-items-center">#}
+{#                            <label for="search_tag" class="me-2">标签:</label>#}
+{#                            <select class="selectpicker" multiple id="search_tag" name="search_tag"#}
+{#                                    data-live-search="true" title="请选择">#}
+{#                                {% for tag in tag_list %}#}
+{#                                    <option value="{{ tag.id }}"#}
+{#                                            {% if tag.id in default_tag_id_list %}selected{% endif %}>#}
+{#                                        {{ tag.name }}#}
+{#                                    </option>#}
+{#                                {% endfor %}#}
+{#                            </select>#}
+{#                        </div>#}
+{#                    </div>#}
                     <div class="col-md-3 d-flex align-items-center">
                         <button type="submit" class="btn btn-sm  btn-primary">查询</button>
                         <a href="{{ url_for('api.tg_group_user_list') }}" class="btn btn-sm btn-success"
                            style="margin-left: 10px">重置</a>
-                        <a href="{{ url_for('api.tg_group_user_download', **request.args.to_dict()) }}" class="btn btn-sm btn-secondary"
+                        <a href="{{ url_for('api.tg_group_user_download', **request.args.to_dict()) }}"
+                           class="btn btn-sm btn-secondary"
                            style="margin-left: 10px">下载</a>
                     </div>
                 </div>
@@ -99,6 +114,8 @@
                         <th scope="col" style="width: 100px">用户id</th>
                         <th scope="col" style="width: 100px">个人简介</th>
                         <th scope="col" style="width: 200px">头像</th>
+                        <th scope="col" style="width: 200px">标签</th>
+                        <th scope="col" style="width: 100px">操作</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -115,6 +132,16 @@
                                          src="{{ url_for('static', filename=word.photo) }}" alt="">
                                 {% endif %}
                             </td>
+                            <td style="width: 100px">{{ word.tag }}</td>
+                            <td style="width: 100px">
+                                <a href="#" class="btn btn-sm  btn-primary edit-tag"
+                                   data-parse-id="{{ word.id }}"
+                                   data-parse-user_id="{{ word.user_id }}" data-parse-tag="{{ word.tag_id_list }}"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#editRoleModal">编辑</a>
+                            </td>
+
+
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -147,6 +174,9 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
+
+
+
                                         {{ url_for('api.tg_group_user_list', page=current_page+1, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">下一页</a>
                             </li>
                         {% else %}
@@ -161,6 +191,44 @@
 
         </div>
 
+        <!-- Edit Tag Modal -->
+        <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editRoleModalLabel">编辑</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Form to select tags -->
+                        <form id="editRoleForm">
+                            <div class="mb-3">
+                                <label for="edit_user_id" class="form-label">用户id</label>
+                                <input type="text" class="form-control" id="edit_user_id">
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" style="display: none;" class="form-control" id="edit_parse_id"
+                                       name="edit_parse_id"
+                                       disabled="true" readonly>
+                                <label for="tagSelect" class="form-label">选择标签</label>
+                                <select class="selectpicker" multiple id="tagSelect" data-live-search="true"
+                                        title="请选择">
+                                    {% for tag in tag_list %}
+                                        <option value={{ tag.id }}>{{ tag.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="saveTagChanges">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 {% endblock content %}
@@ -172,6 +240,46 @@
                 var isChecked = this.checked;
                 $('#select-all').closest('table').find('input[type="checkbox"]').prop('checked', isChecked);
             });
+
+            $('.edit-tag').on('click', function () {
+                // Fetch user data and populate modal form
+                var selectedTags = $(this).data('parse-tag');
+                var tag_list = []
+                if (selectedTags.length > 1) {
+                    tag_list = selectedTags.split(',');
+                } else {
+                    tag_list = [selectedTags.toString()]
+                }
+                $('#tagSelect').selectpicker('val', tag_list);
+                const parse_id = $(this).data('parse-id');
+                $('#edit_parse_id').val(parse_id);
+                const parse_user_id = $(this).data('parse-user_id');
+                $('#edit_user_id').val(parse_user_id);
+                $('#editRoleModal').modal('show');
+            });
+
+            $('#saveTagChanges').on('click', function () {
+                var $tagSelect = $('#tagSelect');
+                var selectedTags = $tagSelect.val();
+                var tg_user_id = $('#edit_parse_id').val();
+                console.log('select tags:', selectedTags)
+                $('.selectpicker').selectpicker('val', ['noneSelectedText']);
+                $('.selectpicker').selectpicker('refresh');
+
+                // Update user tags on server
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("api.tg_group_user_modify_tag") }}',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({tg_user_id: tg_user_id, tag_id_list: selectedTags.join(',')}), // Convert array back to comma-separated string
+                    success: function (response) {
+                        $('#editRoleModal').modal('hide');
+                        location.reload(false);
+
+                    }
+                });
+            });
+
         });
         $(document).on('click', '.search_keyword', function (e) {
             console.log('点击搜索')
@@ -210,86 +318,6 @@
                     }
                 });
             }
-        });
-
-        $('.edit-tag').on('click', function () {
-            // Fetch user data and populate modal form
-            var selectedTags = $(this).data('parse-tag');
-            var tag_list = []
-            if (selectedTags.length > 1) {
-                tag_list = selectedTags.split(',');
-            } else {
-                tag_list = [selectedTags.toString()]
-            }
-            $('#tagSelect').selectpicker('val', tag_list);
-            const parse_id = $(this).data('parse-id');
-            $('#edit_parse_id').val(parse_id);
-            $('#editRoleModal').modal('show');
-        });
-
-        $('#saveTagChanges').on('click', function () {
-            var $tagSelect = $('#tagSelect');
-            var selectedTags = $tagSelect.val();
-            var parse_id = $('#edit_parse_id').val();
-            console.log('parse id:', parse_id)
-            console.log('select tags:', selectedTags)
-            $('.selectpicker').selectpicker('val', ['noneSelectedText']);
-            $('.selectpicker').selectpicker('refresh');
-
-            // Update user tags on server
-            $.ajax({
-                type: 'POST',
-                url: '{{ url_for("api.black_keyword_search_result_tag_update") }}',
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({parse_id: parse_id, tag_id_list: selectedTags.join(',')}), // Convert array back to comma-separated string
-                success: function (response) {
-                    $('#editRoleModal').modal('hide');
-                    location.reload(false);
-
-                }
-            });
-        });
-
-        // Show the add result modal when the button is clicked
-        $('.add_parse_result').on('click', function () {
-            $('#addResultTagSelect').selectpicker('val', ['noneSelectedText']);
-            $('#addResultModal').modal('show');
-        });
-
-        $('#addResult').on('click', function () {
-            console.log('新增保存');
-            var keyword = $('#addKeyword').val();
-            var url = $('#addUrl').val();
-            var account = $('#addAccount').val();
-            var desc = $('#addDesc').val();
-            var selectedTags = $('#addResultTagSelect').val();
-            console.log('selectedTags:', selectedTags);
-
-            if (!keyword && (!url || !account)) {
-                alert('请填写关键词、url或account为！');
-                return;
-            }
-
-            // Send a request to the server to add the new result
-            $.ajax({
-                type: 'POST',
-                url: '{{ url_for("api.black_keyword_search_result_add") }}', // Make sure this URL is correct
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({
-                    keyword: keyword,
-                    url: url,
-                    account: account,
-                    desc: desc,
-                    tag_id_list: selectedTags.join(',')
-                }),
-                success: function (response) {
-                    $('#addResultModal').modal('hide');
-                    location.reload(false); // Refresh the page after adding the result
-                },
-                error: function (error) {
-                    console.error("Error:", error);
-                }
-            });
         });
 
     </script>
