@@ -1,3 +1,4 @@
+import collections
 from io import BytesIO
 
 import pandas as pd
@@ -7,7 +8,9 @@ from jd import db
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
-from jd.views import get_or_exception
+from jd.models.tg_group_user_tag import TgGroupUserTag
+from jd.services.tag import TagService
+from jd.views import get_or_exception, success
 from jd.views.api import api
 
 
@@ -31,25 +34,39 @@ def tg_group_user_list():
     if search_desc:
         query = query.filter(TgGroupUserInfo.desc.like(f'%{search_desc}%'))
     total_records = query.count()
+    tag_list = TagService.list()
     group_user_list = query.order_by(TgGroupUserInfo.id.desc()).offset(offset).limit(page_size).all()
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     group_list = [{'chat_id': c.chat_id, 'group_name': c.name} for c in chat_room]
     chat_room = {r.chat_id: r.name for r in chat_room}
-    data = [{
-        'user_id': group_user.user_id,
-        'chat_id': group_user.chat_id,
-        'nickname': group_user.nickname,
-        'username': group_user.username,
-        'photo': group_user.avatar_path,
-        'desc': group_user.desc,
-        'group_name': chat_room.get(group_user.chat_id, '')
-    } for group_user in group_user_list]
+    group_user_id_list = [group_user.id for group_user in group_user_list]
+    parse_tag_list = TgGroupUserTag.query.filter(TgGroupUserTag.tg_user_id.in_(group_user_id_list)).all()
+    parse_tag_result = collections.defaultdict(list)
+    for p in parse_tag_list:
+        parse_tag_result[p.tg_user_id].append(str(p.tag_id))
+    tag_dict = {t['id']: t['name'] for t in tag_list}
+    data = []
+    for group_user in group_user_list:
+        parse_tag = parse_tag_result.get(group_user.id, [])
+        tag_text = ','.join([tag_dict.get(int(t), '') for t in parse_tag if tag_dict.get(int(t), '')])
+        data.append({
+            'id': group_user.id,
+            'user_id': group_user.user_id,
+            'chat_id': group_user.chat_id,
+            'nickname': group_user.nickname,
+            'username': group_user.username,
+            'photo': group_user.avatar_path,
+            'desc': group_user.desc,
+            'tag': tag_text,
+            'tag_id_list': ','.join(parse_tag) if parse_tag else '',
+            'group_name': chat_room.get(group_user.chat_id, '')
+        })
 
     total_pages = (total_records + page_size - 1) // page_size
 
     return render_template('tg_group_user.html', data=data, group_list=group_list, total_pages=total_pages,
                            current_page=page, page_size=page_size, default_search_group_id=search_group_id,
-                           default_search_username=search_username,
+                           default_search_username=search_username, tag_list=tag_list,
                            default_search_nickname=search_nickname, default_search_desc=search_desc)
 
 
@@ -97,3 +114,19 @@ def tg_group_user_download():
     response.headers["Content-type"] = "text/csv"
 
     return response
+
+
+@api.route('/tg/group_user/tag/update', methods=['POST'])
+def tg_group_user_modify_tag():
+    args = request.json
+    tg_user_id = get_or_exception('tg_user_id', args, 'int')
+    tag_id_list = get_or_exception('tag_id_list', args, 'str', '')
+    if tag_id_list:
+        tag_id_list = tag_id_list.split(',')
+        tag_id_list = [int(t) for t in tag_id_list]
+    TgGroupUserTag.query.filter(TgGroupUserTag.tg_user_id == tg_user_id).delete()
+    for tag_id in tag_id_list:
+        obj = TgGroupUserTag(tg_user_id=tg_user_id, tag_id=tag_id)
+        db.session.add(obj)
+    db.session.commit()
+    return success()

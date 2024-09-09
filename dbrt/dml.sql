@@ -259,3 +259,7 @@ alter table tg_account add `api_code` varchar(16) not null default '' comment '�
 # 头像本地地址
 alter table tg_group_user_info add avatar_path    varchar(1024) default ''                not null comment '头像本地地址';
 
+# 群组增加描述
+alter table tg_group add   `desc` varchar(1024) NOT NULL DEFAULT '' COMMENT '描述信息';
+
+
