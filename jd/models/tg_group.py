@@ -10,6 +10,7 @@ class TgGroup(db.Model):
     desc = db.Column(db.String(1024), nullable=False, default='', comment='描述')
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    account_id = db.Column(db.String(128), nullable=False, default='', comment='tg_account.user_id')
 
     class StatusType:
         NOT_JOIN = 0

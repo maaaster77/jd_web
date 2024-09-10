@@ -35,9 +35,16 @@
 {% block content %}
     <div class="container mt-5">
         <h3 class="mb-4">TG群组</h3>
-{#        <div class="card-body">#}
-{#            <form method="GET" action="{{ url_for('api.tg_group_list') }}" class="mx-auto">#}
-{#                <div class="row">#}
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('api.tg_group_list') }}" class="mx-auto">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="account_id" class="me-3" style="width: 80px;">账户id:</label>
+                            <input type="text" class="form-control" id="account_id" name="account_id"
+                                   value="{{ default_account_id }}">
+                        </div>
+                    </div>
 {#                    <div class="col-md-3">#}
 {#                        <div class="form-group d-flex align-items-center">#}
 {#                            <label for="search_tag" class="me-2">标签:</label>#}
@@ -52,14 +59,14 @@
 {#                            </select>#}
 {#                        </div>#}
 {#                    </div>#}
-{#                    <div class="col-md-3 d-flex align-items-center">#}
-{#                        <button type="submit" class="btn btn-sm  btn-primary">查询</button>#}
-{#                        <a href="{{ url_for('api.tg_group_user_list') }}" class="btn btn-sm btn-success"#}
-{#                           style="margin-left: 10px">重置</a>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </form>#}
-{#        </div>#}
+                    <div class="col-md-3 d-flex align-items-center">
+                        <button type="submit" class="btn btn-sm  btn-primary">查询</button>
+                        <a href="{{ url_for('api.tg_group_list') }}" class="btn btn-sm btn-success"
+                           style="margin-left: 10px">重置</a>
+                    </div>
+                </div>
+            </form>
+        </div>
 
         <div class="card mb-3 mt-4">
             <div class="card-header">
@@ -74,7 +81,8 @@
                     <thead>
                     <tr>
                         {#                        <th scope="col">序号</th>#}
-                        <th scope="col">名称</th>
+                        <th scope="col">账户id</th>
+                        <th scope="col">群组名称</th>
                         <th scope="col">群组id</th>
                         <th style="width: 80px" scope="col">状态</th>
                         <th scope="col">描述</th>
@@ -87,6 +95,7 @@
                     {% for word in data %}
                         <tr>
                             {#                            <td>{{ word.id }}</td>#}
+                            <td>{{ word.account_id }}</td>
                             <td>{{ word.name }}</td>
                             <td>{{ word.chat_id }}</td>
                             <td style="width: 80px">{{ word.status }}</td>

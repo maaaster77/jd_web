@@ -262,4 +262,7 @@ alter table tg_group_user_info add avatar_path    varchar(1024) default ''      
 # 群组增加描述
 alter table tg_group add   `desc` varchar(1024) NOT NULL DEFAULT '' COMMENT '描述信息';
 
+alter table tg_group add account_id varchar(128) not null default '' comment 'tg_account.user_id';
+
+
 
