@@ -216,12 +216,14 @@ class TelegramAPIs(object):
                     channel_description = channel_full.full_chat.about
                     username = channel_full.chats[0].username
                     megagroup = channel_full.chats[0].megagroup
+                    group_type = 'channel'
                 elif isinstance(chat, Chat):
                     channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
                     channel_description = channel_full.full_chat.about
                     username = None
                     megagroup = True
+                    group_type = 'chat'
                 else:
                     yield result_json
                     continue
@@ -239,6 +241,7 @@ class TelegramAPIs(object):
                     "is_public": 1 if username else 0,
                     "join_date": chat.date.strftime("%Y-%m-%d %H:%M:%S+%Z"),
                     "unread_count": dialog.unread_count,
+                    'group_type': group_type
                 }
                 result_json["data"] = out
                 yield result_json

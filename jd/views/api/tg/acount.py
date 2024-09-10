@@ -9,7 +9,7 @@ from jd import db, socketio, app
 from jd.models.tg_account import TgAccount
 from jd.tasks.first.tg_app import tg_app_init
 
-from jd.tasks.telegram.tg import fetch_person_chat_history, login_tg_account, send_phone_code
+from jd.tasks.telegram.tg import fetch_person_chat_history, login_tg_account, send_phone_code, fetch_account_channel
 from jd.views import get_or_exception, success
 from jd.views.api import api
 
@@ -157,3 +157,15 @@ def tg_account_update_api_code():
     TgAccount.query.filter_by(phone=phone).update({'api_code': code})
     db.session.commit()
     return success()
+
+
+@api.route('/tg/account/group/search', methods=['POST'])
+def tg_account_group_search():
+    account_id = get_or_exception('account_id', request.json, 'str')
+    account_id_list = [int(i) for i in account_id.split(',')]
+    tg_accounts = TgAccount.query.filter(TgAccount.id.in_(account_id_list),
+                                         TgAccount.status == TgAccount.StatusType.JOIN_SUCCESS).all()
+    for account in tg_accounts:
+        fetch_account_channel.delay(account.id)
+
+    return redirect(url_for('api.tg_account_index'))

@@ -232,6 +232,49 @@ def fetch_person_chat_history(account_id, origin='celery'):
 
 
 @celery.task
+def fetch_account_channel(account_id, origin='celery'):
+    tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
+    if not tg_account:
+        return
+
+    tg = TelegramAPIs()
+    session_dir = f'{app.static_folder}/utils'
+    session_name = f'{session_dir}/{tg_account.name}/jd_{origin}.session'
+    tg.init_client(
+        session_name=session_name, api_id=tg_account.api_id, api_hash=tg_account.api_hash
+    )
+
+    async def get_channel():
+        async for result in tg.get_dialog_list():
+            data = result.get('data', {})
+            print(data)
+            if data.get('group_type', '') != 'channel':
+                continue
+            chat_id = str(data.get('id', ''))
+            if not chat_id:
+                continue
+            tg_group = TgGroup.query.filter(TgGroup.chat_id == chat_id).first()
+            if tg_group:
+                TgGroup.query.filter(TgGroup.chat_id == chat_id).update({
+                    'account_id': tg_account.user_id,
+                    'desc': data.get('channel_description', '')
+                })
+            else:
+                obj = TgGroup(
+                    account_id=tg_account.user_id,
+                    chat_id=chat_id,
+                    name=data.get('username', ''),
+                    desc=data.get('channel_description', ''),
+                    status=TgGroup.StatusType.JOIN_SUCCESS
+                )
+                db.session.add(obj)
+            db.session.commit()
+
+    with tg.client:
+        tg.client.loop.run_until_complete(get_channel())
+
+
+@celery.task
 def send_phone_code(account_id, origin='celery'):
     tg_account = TgAccount.query.filter(TgAccount.id == account_id).first()
     if not tg_account:
