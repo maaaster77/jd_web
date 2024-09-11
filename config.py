@@ -38,7 +38,7 @@ TG_CONFIG = {
 }
 
 # 默认爬取的页数
-SPIDER_DEFAULT_PAGE = 1
+SPIDER_DEFAULT_PAGE = 10
 
 
 OXYLABS_USERNAME = 'customer-hunyun__wgIH3-sessid-0008875723-sesstime-10'

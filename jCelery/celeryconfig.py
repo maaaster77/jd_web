@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 broker_url = 'redis://127.0.0.1:6379/0'
 result_backend = 'redis://127.0.0.1:6379/1'
 # 三个队列
@@ -7,3 +9,11 @@ task_routes = {
 }
 # 默认队列
 task_default_queue = 'jd.tasks.first'
+
+
+beat_schedule = {
+    'chemical_data_get_job': {
+        'task': 'jd.tasks.first.spider_chemical.chemical_data_get_job',
+        'schedule': timedelta(days=1),
+    }
+}
