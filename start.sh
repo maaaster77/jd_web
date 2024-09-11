@@ -35,6 +35,10 @@ nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info 
 echo "启动celery telegram"
 nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
 
+echo "启动celery beat"
+nohup celery -A scripts.worker:celery beat  --loglevel=info log/celery_beat.txt 2>&1 &
+
+
 # echo "启动flower"
 # nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True --db="flower_db" > log/celery_flower.txt 2>&1 &
 

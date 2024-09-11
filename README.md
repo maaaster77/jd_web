@@ -68,6 +68,10 @@ celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info
 ```shell
 celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info
 ```
+### 运行beat
+```shell
+celery -A scripts.worker:celery beat  --loglevel=info
+```
 
 
 ### 运行web
