@@ -354,7 +354,7 @@ def login_tg_account(account_id, origin='celery'):
         if user:
             TgAccount.query.filter(TgAccount.id == tg_account.id).update({
                 'status': TgAccount.StatusType.JOIN_SUCCESS,
-                'username': user.username,
+                'username': user.username if user.username else '',
                 'user_id': user.id,
                 'nickname': f'{user.first_name if user.first_name else ""} {user.last_name if user.last_name else ""}',
                 'phone_code_hash': '',
