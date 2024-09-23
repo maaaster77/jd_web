@@ -1,5 +1,7 @@
+import logging
 import time
 
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -9,10 +11,18 @@ from jd import app, db
 from jd.models.tg_account import TgAccount
 from jd.services.proxy import OxylabsProxy, create_proxyauth_extension
 
+logger = logging.getLogger(__name__)
+
 
 @celery.task
-def tg_app_init(phone):
+def tg_app_init(phone, ip_test=False):
+    if ip_test:
+        url = 'https://httpbin.org/ip'  # 请求当前使用的ip
+    else:
+        url = 'https://my.telegram.org/auth'
     with app.app_context():
+        display = Display(visible=False, size=(800, 600))
+        display.start()
         # 设置代理服务器
         chrome_options = Options()
         proxyauth_plugin_path = create_proxyauth_extension(
@@ -24,24 +34,27 @@ def tg_app_init(phone):
 
         chrome_options.add_extension(proxyauth_plugin_path)
 
-        chrome_options.add_argument('--headless')  # 启动无头模式
+        chrome_options.add_argument('--headless=new')  # 启动无头模式
         chrome_options.add_argument('--disable-gpu')  # 一些系统可能需要禁用 GPU 加速
         chrome_options.add_argument('--no-sandbox')  # Bypass OS
-        driver = webdriver.Chrome(options=chrome_options)
-        url = 'https://my.telegram.org/auth'
-        # url = 'https://httpbin.org/ip'  # 请求当前使用的ip
+        try:
+            driver = webdriver.Chrome(options=chrome_options)
+        except Exception as e:
+            logger.error(e)
+            return
         for i in range(5):
             try:
                 driver.get(url)
                 page_source = driver.page_source
+                logger.info(f'url:{url}, page:{page_source}')
                 print(f'url:{url}, page:{page_source}')
                 if 'Authorization' in page_source:
                     break
             except Exception as e:
-                print(f'请求不通该url:{url}， times:{i+1}')
+                print(f'请求不通该url:{url}， times:{i + 1}')
             time.sleep(1)
             continue
-        if i == 5:
+        if i == 5 or ip_test:
             driver.quit()
             return
         time.sleep(1)
