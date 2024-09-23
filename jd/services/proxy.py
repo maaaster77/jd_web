@@ -1,4 +1,5 @@
 import logging
+import os.path
 
 import urllib.request
 
@@ -73,8 +74,9 @@ def create_proxyauth_extension(proxy_host, proxy_port, proxy_username, proxy_pas
         plugin_path (str): absolute path of the extension
     return str -> plugin_path
     """
-    if plugin_path is None:
-        plugin_path = 'Selenium-Chrome-HTTP-Private-Proxy.zip'
+    plugin_path = f'{app.static_folder}/utils/Selenium-Chrome-HTTP-Private-Proxy.zip'
+    if os.path.exists(plugin_path):
+        return plugin_path
     manifest_json = """
     {
         "version": "1.0.0",
