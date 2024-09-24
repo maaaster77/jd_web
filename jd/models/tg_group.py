@@ -11,6 +11,8 @@ class TgGroup(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     account_id = db.Column(db.String(128), nullable=False, default='', comment='tg_account.user_id')
+    avatar_path = db.Column(db.String(1024), nullable=False, default='', comment='头像本地地址')
+
 
     class StatusType:
         NOT_JOIN = 0

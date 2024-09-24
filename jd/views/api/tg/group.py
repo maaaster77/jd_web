@@ -16,9 +16,12 @@ from jd.views.api import api
 def tg_group_list():
     args = request.args
     account_id = get_or_exception('account_id', args, 'str', '')
+    group_name = get_or_exception('group_name', args, 'str', '')
     query = TgGroup.query
     if account_id:
         query = query.filter(TgGroup.account_id == account_id)
+    if group_name:
+        query = query.filter(TgGroup.name.like('%' + group_name + '%'))
     groups = query.order_by(TgGroup.id.desc()).all()
     tag_list = TagService.list()
     if not groups:
@@ -43,9 +46,10 @@ def tg_group_list():
             'tag': tag_text,
             'tag_id_list': ','.join(parse_tag) if parse_tag else '',
             'created_at': g.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'account_id': g.account_id
+            'account_id': g.account_id,
+            'photo': g.avatar_path,
         })
-    return render_template('tg_group_manage.html', data=data, tag_list=tag_list, default_account_id=account_id)
+    return render_template('tg_group_manage.html', data=data, tag_list=tag_list, default_account_id=account_id, default_group_name=group_name)
 
 
 @api.route('/tg/group/delete')

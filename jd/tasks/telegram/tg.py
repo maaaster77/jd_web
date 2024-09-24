@@ -40,10 +40,20 @@ def join_group(group_name, origin='celery'):
                 }
             else:
                 channel_full = await tg.get_full_channel(chat_id)
+                url = f'https://t.me/{group_name}'
+                data = TelegramSpider().search_query(url)
+                if not data:
+                    return
+                photo_url = data['photo_url']
+                file_path = ''
+                if photo_url:
+                    # 下载图片
+                    file_path = TgService.download_photo(photo_url, chat_id)
                 update_info = {
                     'status': TgGroup.StatusType.JOIN_SUCCESS,
                     'chat_id': chat_id,
-                    'desc': channel_full.get("channel_description", '')
+                    'desc': channel_full.get("channel_description", ''),
+                    'avatar_path': file_path
                 }
             TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()
@@ -80,26 +90,10 @@ def fetch_group_user_info(chat_id, user_id, nick_name, username, origin='celery'
         if not data:
             return
         photo_url = data['photo_url']
+        file_path = ''
         if photo_url:
             # 下载图片
-            try:
-                response = requests.get(photo_url)
-                image_path = os.path.join(app.static_folder, 'images/avatar')
-                os.makedirs(image_path, exist_ok=True)
-                file_path = f'{image_path}/{user_id}.jpg'
-                # 检查请求是否成功
-                if response.status_code == 200:
-                    # 保存图片到本地
-                    with open(file_path, 'wb') as file:
-                        file.write(response.content)
-                else:
-                    file_path = ''
-                    print(f"Failed to download photo. Status code: {response.status_code}")
-            except Exception as e:
-                print(f'{user_id}: 下载头像失败：{e}')
-                file_path = ''
-        else:
-            file_path = ''
+            file_path = TgService.download_photo(photo_url, user_id)
 
         obj = TgGroupUserInfo(chat_id=chat_id, user_id=user_id, nickname=nick_name,
                               username=username,
@@ -253,11 +247,23 @@ def fetch_account_channel(account_id, origin='celery'):
             chat_id = str(data.get('id', ''))
             if not chat_id:
                 continue
+            group_name = data.get('username', '')
+            file_path = ''
+            if group_name:
+                url = f'https://t.me/{group_name}'
+                data = TelegramSpider().search_query(url)
+                if not data:
+                    return
+                photo_url = data['photo_url']
+                if photo_url:
+                    # 下载图片
+                    file_path = TgService.download_photo(photo_url, chat_id)
             tg_group = TgGroup.query.filter(TgGroup.chat_id == chat_id).first()
             if tg_group:
                 TgGroup.query.filter(TgGroup.chat_id == chat_id).update({
                     'account_id': tg_account.user_id,
-                    'desc': data.get('channel_description', '')
+                    'desc': data.get('channel_description', ''),
+                    'avatar_path': file_path
                 })
             else:
                 obj = TgGroup(
@@ -265,7 +271,8 @@ def fetch_account_channel(account_id, origin='celery'):
                     chat_id=chat_id,
                     name=data.get('username', ''),
                     desc=data.get('channel_description', ''),
-                    status=TgGroup.StatusType.JOIN_SUCCESS
+                    status=TgGroup.StatusType.JOIN_SUCCESS,
+                    avatar_path=file_path
                 )
                 db.session.add(obj)
             db.session.commit()
