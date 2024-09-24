@@ -1,9 +1,11 @@
 import logging
 import os
 
+import requests
+
 from jd import app
 from jd.models.tg_group import TgGroup
-from jd.services.spider.telegram_spider import TelegramAPIs
+from jd.services.spider.telegram_spider import TelegramAPIs, TelegramSpider
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,28 @@ class TgService:
                 session_name=session_name, api_id=api_id, api_hash=api_hash, proxy=clash_proxy
             )
         except Exception as e:
-            logger.info("init error",e)
-            print("here",e)
+            logger.info("init error", e)
+            print("here", e)
             return None
         return tg
+
+    @classmethod
+    def download_photo(cls, photo_url, user_id):
+        try:
+            response = requests.get(photo_url)
+            image_path = os.path.join(app.static_folder, 'images/avatar')
+            os.makedirs(image_path, exist_ok=True)
+            file_path = f'{image_path}/{user_id}.jpg'
+            # 检查请求是否成功
+            if response.status_code == 200:
+                # 保存图片到本地
+                with open(file_path, 'wb') as file:
+                    file.write(response.content)
+            else:
+                file_path = ''
+                print(f"Failed to download photo. Status code: {response.status_code}")
+        except Exception as e:
+            print(f'{user_id}: 下载头像失败：{e}')
+            file_path = ''
+
+        return f'images/avatar/{user_id}.jpg'

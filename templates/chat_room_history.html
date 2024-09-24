@@ -142,10 +142,11 @@
                                 {% for photo in word.photo_paths %}
                                     {% if photo %}
                                         <img style="width: 65px; height: 100px"
-                                             src="{{ url_for('static', filename=photo) }}" alt="">
+                                             src="{{ url_for('static', filename=photo) }}" alt=""
+                                             onclick="showLargeImage('{{ url_for('static', filename=photo) }}')">
+
                                     {% endif %}
                                 {% endfor %}
-
                             </td>
                             <td style="width: 100px">{{ word.postal_time }}</td>
                         </tr>
@@ -179,7 +180,17 @@
 
                         {% if current_page < total_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content,start_date=default_start_date, end_date=default_end_date, search_account_id=default_search_account_id) }}">下一页</a>
+                                <a class="page-link" href="
+
+
+
+
+
+
+
+
+
+                                        {{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content,start_date=default_start_date, end_date=default_end_date, search_account_id=default_search_account_id) }}">下一页</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled">
@@ -188,6 +199,24 @@
                         {% endif %}
                     </ul>
                 </nav>
+            </div>
+            <!-- 模态框 -->
+            <div class="modal fade" id="image_modal" tabindex="-1"
+                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-l">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="image_modal">查看大图</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <img id="largeImage" class="img-fluid"
+                                 src=""
+                                 style="max-width: 100%; max-height: 100%">
+                        </div>
+                    </div>
+                </div>
             </div>
 
 
@@ -199,130 +228,12 @@
 
 {% block script %}
     <script>
-        $(document).ready(function () {
-            $('#select-all').on('change', function () {
-                var isChecked = this.checked;
-                $('#select-all').closest('table').find('input[type="checkbox"]').prop('checked', isChecked);
-            });
-        });
-        $(document).on('click', '.search_keyword', function (e) {
-            console.log('点击搜索')
-            e.preventDefault();
-            const selectedKeywords = [];
-            // 遍历所有的checkbox，收集被选中的关键词ID
-            $('input[name="selectedWords"]:checked').each(function () {
-                selectedKeywords.push($(this).val());
-            });
-            const keywords = selectedKeywords.join(',');
-            console.log('keyword:', keywords);
-            if (!keywords) {
-                alert('请选择关键词');
-                return;
-            }
-            const search_type = $('input[name="searchEngine"]:checked').val();
-            if (!search_type) {
-                alert('请选择搜索引擎');
-                return;
-            }
-            console.log('search_type:', search_type);
 
-            if (selectedKeywords) {
-                $.ajax({
-                    url: "{{ url_for('api.black_keyword_search') }}",
-                    type: "post",
-                    data: JSON.stringify({keywords: keywords, search_type: search_type}),
-                    contentType: "application/json; charset=utf-8",
-                    success: function (response) {
-                        const msg = response.payload.msg;
-                        alert(msg);
-                    },
-                    error: function (error) {
-                        // 处理错误情况
-                        console.error("Error:", error);
-                    }
-                });
-            }
-        });
-
-        $('.edit-tag').on('click', function () {
-            // Fetch user data and populate modal form
-            var selectedTags = $(this).data('parse-tag');
-            var tag_list = []
-            if (selectedTags.length > 1) {
-                tag_list = selectedTags.split(',');
-            } else {
-                tag_list = [selectedTags.toString()]
-            }
-            $('#tagSelect').selectpicker('val', tag_list);
-            const parse_id = $(this).data('parse-id');
-            $('#edit_parse_id').val(parse_id);
-            $('#editRoleModal').modal('show');
-        });
-
-        $('#saveTagChanges').on('click', function () {
-            var $tagSelect = $('#tagSelect');
-            var selectedTags = $tagSelect.val();
-            var parse_id = $('#edit_parse_id').val();
-            console.log('parse id:', parse_id)
-            console.log('select tags:', selectedTags)
-            $('.selectpicker').selectpicker('val', ['noneSelectedText']);
-            $('.selectpicker').selectpicker('refresh');
-
-            // Update user tags on server
-            $.ajax({
-                type: 'POST',
-                url: '{{ url_for("api.black_keyword_search_result_tag_update") }}',
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({parse_id: parse_id, tag_id_list: selectedTags.join(',')}), // Convert array back to comma-separated string
-                success: function (response) {
-                    $('#editRoleModal').modal('hide');
-                    location.reload(false);
-
-                }
-            });
-        });
-
-        // Show the add result modal when the button is clicked
-        $('.add_parse_result').on('click', function () {
-            $('#addResultTagSelect').selectpicker('val', ['noneSelectedText']);
-            $('#addResultModal').modal('show');
-        });
-
-        $('#addResult').on('click', function () {
-            console.log('新增保存');
-            var keyword = $('#addKeyword').val();
-            var url = $('#addUrl').val();
-            var account = $('#addAccount').val();
-            var desc = $('#addDesc').val();
-            var selectedTags = $('#addResultTagSelect').val();
-            console.log('selectedTags:', selectedTags);
-
-            if (!keyword && (!url || !account)) {
-                alert('请填写关键词、url或account为！');
-                return;
-            }
-
-            // Send a request to the server to add the new result
-            $.ajax({
-                type: 'POST',
-                url: '{{ url_for("api.black_keyword_search_result_add") }}', // Make sure this URL is correct
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({
-                    keyword: keyword,
-                    url: url,
-                    account: account,
-                    desc: desc,
-                    tag_id_list: selectedTags.join(',')
-                }),
-                success: function (response) {
-                    $('#addResultModal').modal('hide');
-                    location.reload(false); // Refresh the page after adding the result
-                },
-                error: function (error) {
-                    console.error("Error:", error);
-                }
-            });
-        });
+        function showLargeImage(imageUrl) {
+            console.log('image:', imageUrl)
+            $('#largeImage').attr('src', imageUrl);
+            $('#image_modal').modal('show');
+        }
 
     </script>
 {% endblock script %}
