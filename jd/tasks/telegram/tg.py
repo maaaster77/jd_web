@@ -40,7 +40,7 @@ def join_group(group_name, origin='celery'):
                 }
             else:
                 channel_full = await tg.get_full_channel(chat_id)
-                url = f'https://t.me/{group_name}'
+                url = f'https://t.me/{group_name.replace("t.me/", "")}'
                 data = TelegramSpider().search_query(url)
                 if not data:
                     return
