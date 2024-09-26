@@ -267,5 +267,8 @@ alter table tg_group add account_id varchar(128) not null default '' comment 'tg
 
 alter table tg_group add avatar_path    varchar(1024) default ''  not null comment '头像本地地址';
 
+alter table tg_group_chat_history add `document_path` varchar(256) NOT NULL DEFAULT '' COMMENT '视频/文件地址';
+
+alter table tg_group_chat_history add `document_ext` varchar(16) NOT NULL DEFAULT '' COMMENT '文件类型';
 
 

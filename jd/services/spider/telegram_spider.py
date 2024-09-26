@@ -11,7 +11,7 @@ from telethon.tl.functions.contacts import GetContactsRequest, DeleteContactsReq
 from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInviteRequest, GetFullChatRequest
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Message, ChannelParticipantsSearch, \
-    ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent, User
+    ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent, User, DocumentAttributeFilename
 
 from jd import app
 
@@ -317,6 +317,8 @@ class TelegramAPIs(object):
         count = 0
         image_path = os.path.join(app.static_folder, 'images')
         os.makedirs(image_path, exist_ok=True)
+        document_path = os.path.join(app.static_folder, 'document')
+        os.makedirs(document_path, exist_ok=True)
         async for message in self.client.iter_messages(
                 chat,
                 limit=limit,
@@ -378,7 +380,24 @@ class TelegramAPIs(object):
                         'file_path': f'images/{str(photo.id)}.jpg'
                     }
                     await self.client.download_media(message=message, file=file_name, thumb=-1)
-
+                document = message.document
+                m['document'] = {}
+                if document and document.attributes:
+                    file_name = ''
+                    for attr in document.attributes:
+                        if isinstance(attr, DocumentAttributeFilename):
+                            file_name = attr.file_name
+                            break
+                    if file_name:
+                        file_path = f'{document_path}/{file_name}'
+                        m['document'] = {
+                            'document_id': document.id,
+                            'file_name': file_name,
+                            'file_ext': file_name.split('.')[-1],
+                            'access_hash': document.access_hash,
+                            'file_path': f'document/{file_name}'
+                        }
+                        await self.client.download_media(message=message, file=file_path)
                 tick += 1
                 if tick >= waterline:
                     tick = 0
@@ -553,7 +572,6 @@ class TelegramAPIs(object):
         return out
 
 
-
 def test_tg_spider():
     spider = TelegramSpider()
     url_list = ['https://t.me/feixingmeiluo', 'https://t.me/huaxuerou', 'https://t.me/ppo995']
@@ -605,6 +623,7 @@ if __name__ == '__main__':
     #         result.append(group)
     #     print('group_list:', result)
 
+
     #
 
     # async def join_group():
@@ -615,18 +634,18 @@ if __name__ == '__main__':
 
     #
 
-    # async def scan_message_photo():
-    #     params = {
-    #         "limit": 20,
-    #         # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
-    #         "last_message_id": -1,
-    #     }
-    #     group_id = 5484198953
-    #     chat = await tg.get_dialog(group_id)
-    #     print(chat)
-    #     history = tg.scan_message(chat, **params)
-    #     async for message in history:
-    #         print(message)
+    async def scan_message_photo():
+        params = {
+            "limit": 20,
+            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+            "last_message_id": -1,
+        }
+        group_id = 777000
+        chat = await tg.get_dialog(group_id)
+        print(chat)
+        history = tg.scan_message(chat, **params)
+        async for message in history:
+            print(message)
     #
     #
 
@@ -640,12 +659,16 @@ if __name__ == '__main__':
     #     result = await tg.get_chatroom_user_info(group_id, '小胖')
     #     print(result)
 
-    async def get_chat(chat_id):
-        chat = await tg.get_dialog(chat_id)
-        channel_full = await tg.client(GetFullChannelRequest(chat))
+    # async def get_chat(chat_id):
+    #     chat = await tg.get_dialog(chat_id)
+    #     channel_full = await tg.client(GetFullChannelRequest(chat))
+    #
+    #     print(channel_full)
 
-        print(channel_full)
+    async def get_person_dialog_list():
+        result = await tg.get_person_dialog_list()
+        print(result)
 
 
     with tg.client:
-        tg.client.loop.run_until_complete(get_chat(1270985546))
+        tg.client.loop.run_until_complete(scan_message_photo())

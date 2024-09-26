@@ -68,6 +68,8 @@ class TgChatHistoryJob:
                     message=data.get("message", ""),
                     reply_to_msg_id=str(data.get("reply_to_msg_id", 0)),
                     photo_path=data.get("photo", {}).get('file_path', ''),
+                    document_path=data.get("document", {}).get('file_path', ''),
+                    document_ext=data.get("document", {}).get('ext', ''),
                 )
                 db.session.add(obj)
             db.session.commit()

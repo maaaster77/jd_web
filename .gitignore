@@ -165,6 +165,7 @@ log/
 
 /static/images
 /static/utils
+/static/document
 
 /config_local.py
 

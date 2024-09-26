@@ -20,23 +20,26 @@ from jd.views.api import api
 def tg_chat_room_history():
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
-    page_size = get_or_exception('page_size', args, 'int', 20)
+    page_size = get_or_exception('page_size', args, 'int', 100)
     search_content = get_or_exception('search_content', args, 'str', '')
     start_date = get_or_exception('start_date', args, 'str', '')
     end_date = get_or_exception('end_date', args, 'str', '')
+    message_id = get_or_exception('message_id', args, 'int', 0)
     search_chat_id_list = args.getlist('search_group_id')
     search_user_id_list = args.getlist('search_user_id')
     search_account_id_list = args.getlist('search_account_id')
 
     rows, total_records = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
-                                                      search_content, page, page_size, search_account_id_list)
-    total_pages = (total_records + page_size - 1) // page_size
+                                                      search_content, page, page_size, search_account_id_list, message_id)
+    total_pages = total_records // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     group_list = [{'chat_id': c.chat_id, 'group_name': c.name} for c in chat_room]
     chat_room = {r.chat_id: r.name for r in chat_room}
     data = []
     for r in rows:
         group_name = chat_room.get(r.chat_id, '')
+        reply_to_msg_ids = [int(r) for r in r.reply_to_msg_ids.split(',') if int(r) > 0]
+        print(f'chat_id:{r.chat_id}, paths:{r.document_paths}')
         data.append({
             'id': r.id,
             'group_name': group_name,
@@ -45,7 +48,11 @@ def tg_chat_room_history():
             'postal_time': r.postal_time,
             'username': r.username,
             'user_id': r.user_id,
-            'photo_paths': r.photo_paths.split(',') if r.photo_paths else []
+            'photo_paths': r.photo_paths.split(',') if r.photo_paths else [],
+            'document_paths': r.document_paths.split(',') if r.document_paths else [],
+            'reply_to_msg_id': reply_to_msg_ids[0] if reply_to_msg_ids else 0,
+            'message_ids': r.message_ids,
+            'chat_id': r.chat_id
         })
     tg_group_user_info = TgGroupUserInfo.query.filter(TgGroupUserInfo.username != '').all()
     unique_users = {}
@@ -76,7 +83,7 @@ def tg_chat_room_history():
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,
                                 page=None,
-                                page_size=None, search_account_id_list=None):
+                                page_size=None, search_account_id_list=None, message_id=0):
     # 需要修改sql_mode
     # set sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
     query = db.session.query(
@@ -86,8 +93,11 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         TgGroupChatHistory.username,
         TgGroupChatHistory.nickname,
         TgGroupChatHistory.postal_time,
+        func.group_concat(TgGroupChatHistory.reply_to_msg_id).label('reply_to_msg_ids'),
         func.group_concat(TgGroupChatHistory.photo_path).label('photo_paths'),
-        func.group_concat(TgGroupChatHistory.message).label('messages')
+        func.group_concat(TgGroupChatHistory.message).label('messages'),
+        func.group_concat(TgGroupChatHistory.document_path).label('document_paths'),
+        func.group_concat(TgGroupChatHistory.message_id).label('message_ids'),
     ).group_by(
         TgGroupChatHistory.chat_id,
         TgGroupChatHistory.user_id,
@@ -98,18 +108,23 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         f_start_date = start_date + ' 00:00:00'
         f_end_date = end_date + ' 23:59:59'
         query = query.filter(TgGroupChatHistory.postal_time.between(f_start_date, f_end_date))
+    search_chat_id_list = [r for r in search_chat_id_list if r]
     if search_chat_id_list:
         query = query.filter(TgGroupChatHistory.chat_id.in_(search_chat_id_list))
+    search_user_id_list = [r for r in search_user_id_list if r]
     if search_user_id_list:
         query = query.filter(TgGroupChatHistory.user_id.in_(search_user_id_list))
     if search_content:
         query = query.filter(TgGroupChatHistory.message.like(f'%{search_content}%'))
+    search_account_id_list = [r for r in search_account_id_list if r]
     if search_account_id_list:
         tg_accounts = TgAccount.query.filter(TgAccount.id.in_(search_account_id_list)).all()
         user_id_list = [t.user_id for t in tg_accounts]
         his = TgGroupChatHistory.query.filter(TgGroupChatHistory.user_id.in_(user_id_list)).all()
         chat_id_list = [t.chat_id for t in his]
         query = query.filter(TgGroupChatHistory.chat_id.in_(chat_id_list))
+    if message_id:
+        query = query.filter(TgGroupChatHistory.message_id == message_id)
     total_records = query.count()
     if page and page_size:
         offset = (page - 1) * page_size

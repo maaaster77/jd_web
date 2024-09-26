@@ -197,9 +197,9 @@ def fetch_person_chat_history(account_id, origin='celery'):
             already_message_id_list = [data.message_id for data in msg]
             for data in history_list:
                 user_id = data.get("user_id", 0)
-                if user_id == 777000:
-                    # 客服
-                    continue
+                # if user_id == 777000:
+                #     # 客服
+                #     continue
                 message_id = str(data.get("message_id", 0))
                 if message_id in already_message_id_list:
                     continue
@@ -216,6 +216,8 @@ def fetch_person_chat_history(account_id, origin='celery'):
                     message=data.get("message", ""),
                     reply_to_msg_id=str(data.get("reply_to_msg_id", 0)),
                     photo_path=data.get("photo", {}).get('file_path', ''),
+                    document_path=data.get("document", {}).get('file_path', ''),
+                    document_ext=data.get("document", {}).get('ext', ''),
                 )
                 db.session.add(obj)
             db.session.commit()
