@@ -129,7 +129,8 @@
                         <th scope="col" style="width: 100px">用户名称</th>
                         <th scope="col" style="width: 100px">用户昵称</th>
                         <th scope="col" style="width: 200px">内容</th>
-                        <th scope="col" style="width: 100px">发送时间</th>
+                        <th scope="col" style="width: 80px">发送时间</th>
+                        <th scope="col" style="width: 70px">操作</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -148,7 +149,16 @@
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td style="width: 100px">{{ word.postal_time }}</td>
+                            <td style="width: 80px">{{ word.postal_time }}</td>
+                            <td style="width: 70px">
+                                {% for path in word.document_paths %}
+                                    <a href="{{ url_for('static', filename=path) }}" download="{{ url_for('static', filename=path) }}">文件{{ loop.index }}</a>
+                                {% endfor %}
+                                {% if word.reply_to_msg_id > 0 %}
+                                    <a href="{{ url_for('api.tg_chat_room_history', chat_id=[word.chat_id], message_id=word.reply_to_msg_id) }}"
+                                       target="_blank">引用</a>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -180,17 +190,7 @@
 
                         {% if current_page < total_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="
-
-
-
-
-
-
-
-
-
-                                        {{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content,start_date=default_start_date, end_date=default_end_date, search_account_id=default_search_account_id) }}">下一页</a>
+                                <a class="page-link" href="{{ url_for('api.tg_chat_room_history', page=current_page+1, page_size=page_size, search_group_id=search_group_id, search_user_id=search_user_id, search_content=default_search_content,start_date=default_start_date, end_date=default_end_date, search_account_id=default_search_account_id) }}">下一页</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled">
