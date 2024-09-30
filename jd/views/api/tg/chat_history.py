@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import render_template, request, make_response, send_file
@@ -15,6 +16,8 @@ from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.views import get_or_exception
 from jd.views.api import api
 
+logger = logging.getLogger(__name__)
+
 
 @api.route('/tg/chat_room/history', methods=['GET'])
 def tg_chat_room_history():
@@ -30,7 +33,8 @@ def tg_chat_room_history():
     search_account_id_list = args.getlist('search_account_id')
 
     rows, total_records = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
-                                                      search_content, page, page_size, search_account_id_list, message_id)
+                                                      search_content, page, page_size, search_account_id_list,
+                                                      message_id)
     total_pages = total_records // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     group_list = [{'chat_id': c.chat_id, 'group_name': c.name} for c in chat_room]
@@ -144,8 +148,6 @@ def tg_chat_room_history_download():
     search_user_id_list = args.getlist('search_user_id')
     search_account_id_list = args.getlist('search_account_id')
 
-
-
     rows, _ = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
                                           search_content, search_account_id_list=search_account_id_list)
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
@@ -191,7 +193,11 @@ def tg_chat_room_history_download():
             img_path = os.path.join(app.static_folder, img_path)
             if not os.path.exists(img_path):
                 continue
-            img = Image(img_path)
+            try:
+                img = Image(img_path)
+            except Exception as e:
+                logger.error(f'图片加载错误：{img_path}, error:{e}')
+                continue
             # 调整图片大小
             img.width = 65
             img.height = 100

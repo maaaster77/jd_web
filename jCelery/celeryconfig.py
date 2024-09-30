@@ -10,10 +10,13 @@ task_routes = {
 # 默认队列
 task_default_queue = 'jd.tasks.first'
 
-
 beat_schedule = {
     'chemical_data_get_job': {
         'task': 'jd.tasks.first.spider_chemical.chemical_data_get_job',
         'schedule': timedelta(days=1),
+    },
+    'tg_chat_history_job': {
+        'task': 'jd.tasks.first.tg_history_job.fetch_tg_history_job',
+        'schedule': timedelta(minutes=2),
     }
 }
