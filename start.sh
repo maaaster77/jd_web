@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 停止flask
-pid=$(ps aux | grep 'Python -m web' | grep -v grep | awk '{print $2}')
+pid=$(lsof -i :8981 -t)
 if [ -z "$pid" ]; then
   echo "Flask 未运行"
 else
@@ -28,7 +28,7 @@ fi
 #fi
 
 echo "启动celery beat"
-nohup celery -A scripts.worker:celery beat  --loglevel=info log/celery_beat.txt 2>&1 &
+nohup celery -A scripts.worker:celery beat  --loglevel=info > log/celery_beat.txt 2>&1 &
 
 # 启动celery
 echo "启动celery first"
