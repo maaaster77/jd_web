@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class TgChatHistoryJob:
 
     def main(self):
-        chat_room_list = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
+        chat_room_list = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).order_by(TgGroup.id.desc()).all()
         if not chat_room_list:
             return
 
@@ -45,7 +45,6 @@ class TgChatHistoryJob:
             history_list = []
             async for data in tg.scan_message(chat, **param):
                 print("!!!here!!!", data)
-                logger.info('data:', data)
                 history_list.append(data)
             history_list.reverse()
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
@@ -53,6 +52,7 @@ class TgChatHistoryJob:
                                                   TgGroupChatHistory.chat_id == str(chat_id)).all()
             already_message_id_list = [data.message_id for data in msg]
             for data in history_list:
+                logger.info(f'add history_data:{data}')
                 message_id = str(data.get("message_id", 0))
                 if message_id in already_message_id_list:
                     continue
@@ -87,7 +87,7 @@ class TgChatHistoryJob:
 
         # # 群组聊天
         for chat_room in chat_room_list:
-            logger.info('开始获取【chat_room.name】记录')
+            logger.info(f'开始获取{chat_room.name}记录')
             chat_id = chat_room.chat_id
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
