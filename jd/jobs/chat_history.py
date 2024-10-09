@@ -19,6 +19,9 @@ class TgChatHistoryJob:
             return
 
         tg = TgService.init_tg('job')
+        if not tg:
+            logger.info('tg链接失败...')
+            return
 
         async def fetch_chat_history(group_name, chat_id, chat_type='group'):
             chat_id = int(chat_id)
@@ -91,6 +94,7 @@ class TgChatHistoryJob:
             chat_id = chat_room.chat_id
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
+            time.sleep(10)
 
         async def get_person_dialog_list():
             chat_list = await tg.get_person_dialog_list()
