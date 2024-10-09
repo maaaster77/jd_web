@@ -44,7 +44,8 @@ class TgChatHistoryJob:
             }
             history_list = []
             async for data in tg.scan_message(chat, **param):
-                print("!!!here!!!",data)
+                print("!!!here!!!", data)
+                logger.info('data:', data)
                 history_list.append(data)
             history_list.reverse()
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
@@ -86,6 +87,7 @@ class TgChatHistoryJob:
 
         # # 群组聊天
         for chat_room in chat_room_list:
+            logger.info('开始获取【chat_room.name】记录')
             chat_id = chat_room.chat_id
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
