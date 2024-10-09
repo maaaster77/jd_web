@@ -117,6 +117,9 @@ __pypackages__/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+celerybeat-schedule.db
+celerybeat-schedule.dat
+celerybeat-schedule.dir
 
 # SageMath parsed files
 *.sage.py
@@ -173,3 +176,5 @@ flower_db.db
 flower
 log.txt
 config.py
+Selenium-Chrome-HTTP-Private-Proxy.zip
+
