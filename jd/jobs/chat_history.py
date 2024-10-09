@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os.path
 import time
 
 from jd import app, db
@@ -20,6 +21,9 @@ class TgChatHistoryJob:
 
         tg = TgService.init_tg('job')
         if not tg:
+            file_path = os.path.join(app.static_folder, 'utils/jd_job.session-journal')
+            if os.path.exists(file_path):
+                os.remove(file_path)
             logger.info('tg链接失败...')
             return
 
@@ -104,6 +108,8 @@ class TgChatHistoryJob:
         # 私人聊天
         with tg.client:
             tg.client.loop.run_until_complete(get_person_dialog_list())
+
+        tg.close_client()
 
 
 def run():
