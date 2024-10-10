@@ -247,3 +247,11 @@ CREATE TABLE `tg_user_tag` (
   PRIMARY KEY (`id`),
   KEY `idx_parse_tag` (`tg_user_id`,`tag_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='tg群组用户-标签关系表';
+
+
+CREATE TABLE `job_queue_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT 'job_name',
+  `status` int not null default 0 comment '0:未执行 1：进行中 2：已完成',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='job队列';
