@@ -379,7 +379,9 @@ class TelegramAPIs(object):
                         'access_hash': photo.access_hash,
                         'file_path': f'images/{str(photo.id)}.jpg'
                     }
-                    await self.client.download_media(message=message, file=file_name, thumb=-1)
+                    static_path = os.path.join(app.static_folder, m['photo']['file_path'])
+                    if not os.path.exists(static_path):
+                        await self.client.download_media(message=message, file=file_name, thumb=-1)
                 document = message.document
                 m['document'] = {}
                 if document and document.attributes:
@@ -397,7 +399,9 @@ class TelegramAPIs(object):
                             'access_hash': document.access_hash,
                             'file_path': f'document/{file_name}'
                         }
-                        await self.client.download_media(message=message, file=file_path)
+                        static_path = os.path.join(app.static_folder, m['document']['file_path'])
+                        if not os.path.exists(static_path):
+                            await self.client.download_media(message=message, file=file_path)
                 tick += 1
                 if tick >= waterline:
                     tick = 0

@@ -15,15 +15,13 @@ logger = logging.getLogger(__name__)
 class TgChatHistoryJob:
 
     def main(self):
-        chat_room_list = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).order_by(TgGroup.id.desc()).all()
+        chat_room_list = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).order_by(
+            TgGroup.id.desc()).all()
         if not chat_room_list:
             return
 
         tg = TgService.init_tg('job')
         if not tg:
-            file_path = os.path.join(app.static_folder, 'utils/jd_job.session-journal')
-            if os.path.exists(file_path):
-                os.remove(file_path)
             logger.info('tg链接失败...')
             return
 
@@ -99,10 +97,16 @@ class TgChatHistoryJob:
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
             logger.info(f'获取{chat_room.name}记录完成...')
-            logger.info('sleep 30s...')
-            time.sleep(30)
+            logger.info('sleep 10s...')
+            time.sleep(10)
 
-        time.sleep(60)
+        logger.info('关闭tg')
+        tg.close_client()
+        tg = TgService.init_tg('job')
+        if not tg:
+            logger.info('tg链接失败...')
+            return
+        logger.info(f'开始获取私人聊天记录...')
 
         async def get_person_dialog_list():
             chat_list = await tg.get_person_dialog_list()
