@@ -19,6 +19,7 @@ def fetch_tg_history_job():
         db.session.add(queue)
         db.session.commit()
     else:
+        logger.info(f'{job_name} is running')
         return
     TgChatHistoryJob().main()
     db.session.commit()

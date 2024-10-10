@@ -97,8 +97,8 @@ class TgChatHistoryJob:
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
             logger.info(f'获取{chat_room.name}记录完成...')
-            logger.info('sleep 10s...')
-            time.sleep(10)
+            logger.info('sleep 5s...')
+            time.sleep(5)
 
         logger.info('关闭tg')
         tg.close_client()
