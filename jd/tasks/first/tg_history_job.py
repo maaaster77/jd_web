@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 def fetch_tg_history_job():
     logger.info('start fetch_tg_history_job...')
     job_name = 'fetch_tg_history'
-    queue = JobQueueLog.query.filter_by(job_name=job_name).order_by(JobQueueLog.id.desc()).first()
+    queue = JobQueueLog.query.filter_by(name=job_name).order_by(JobQueueLog.id.desc()).first()
     if not queue or queue.status == JobQueueLog.StatusType.FINISHED:
-        queue = JobQueueLog(job_name=job_name, status=JobQueueLog.StatusType.RUNNING)
+        queue = JobQueueLog(name=job_name, status=JobQueueLog.StatusType.RUNNING)
         db.session.add(queue)
         db.session.commit()
     else:
