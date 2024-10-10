@@ -51,7 +51,7 @@ class TgChatHistoryJob:
             }
             history_list = []
             async for data in tg.scan_message(chat, **param):
-                print("!!!here!!!", data)
+                # print("!!!here!!!", data)
                 history_list.append(data)
             history_list.reverse()
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
@@ -59,7 +59,7 @@ class TgChatHistoryJob:
                                                   TgGroupChatHistory.chat_id == str(chat_id)).all()
             already_message_id_list = [data.message_id for data in msg]
             for data in history_list:
-                logger.info(f'add history_data:{data}')
+                logger.info(f'chat history data:{data}')
                 message_id = str(data.get("message_id", 0))
                 if message_id in already_message_id_list:
                     continue
@@ -98,7 +98,11 @@ class TgChatHistoryJob:
             chat_id = chat_room.chat_id
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
-            time.sleep(10)
+            logger.info(f'获取{chat_room.name}记录完成...')
+            logger.info('sleep 30s...')
+            time.sleep(30)
+
+        time.sleep(60)
 
         async def get_person_dialog_list():
             chat_list = await tg.get_person_dialog_list()
