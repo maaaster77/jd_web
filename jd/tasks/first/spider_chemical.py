@@ -18,8 +18,7 @@ def deal_spider_chemical(platform_id):
         return
     i = 0
     for data in spider.search_query(page=app.config['SPIDER_DEFAULT_PAGE']):
-        print('id', platform_id)
-        print('data', data)
+        logger.info(f'化工产品：{platform_id} | {data}')
         # if ChemicalPlatformProductInfo.query.filter(
         #         ChemicalPlatformProductInfo.product_name == data['product_name'],
         #         platform_id == platform_id).first():
@@ -44,5 +43,5 @@ def chemical_data_get_job():
         print(f'抓取:{platform}平台信息...')
         now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         logger.info(f'{now_time}, 抓取:{platform}平台信息...')
-        deal_spider_chemical.delay(platform_id)
+        deal_spider_chemical(platform_id)
         time.sleep(600)

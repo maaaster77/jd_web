@@ -19,8 +19,12 @@ def fetch_tg_history_job():
         db.session.add(queue)
         db.session.commit()
     else:
+        logger.info(f'{job_name} is running')
         return
-    TgChatHistoryJob().main()
+    try:
+        TgChatHistoryJob().main()
+    except Exception as e:
+        logger.info(e)
     db.session.commit()
     JobQueueLog.query.filter_by(id=queue.id, status=JobQueueLog.StatusType.RUNNING).update({
         'status': JobQueueLog.StatusType.FINISHED
