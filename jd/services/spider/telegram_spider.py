@@ -628,11 +628,10 @@ if __name__ == '__main__':
 
     #
 
-    # async def join_group():
-    #     # group_name = 'bajiebest'
-    #     group_name = 'chaoshi99999'
-    #     result = await tg.join_conversation(group_name)
-    #     print(result)
+    async def join_group():
+        group_name = 'daxionfank'
+        result = await tg.join_conversation(group_name)
+        print(result)
 
     #
 
@@ -661,16 +660,20 @@ if __name__ == '__main__':
     #     result = await tg.get_chatroom_user_info(group_id, '小胖')
     #     print(result)
 
-    # async def get_chat(chat_id):
-    #     chat = await tg.get_dialog(chat_id)
-    #     channel_full = await tg.client(GetFullChannelRequest(chat))
-    #
-    #     print(channel_full)
+    async def get_chat(chat_id):
+        chat = await tg.get_dialog(chat_id)
+        # channel_full = await tg.client(GetFullChannelRequest(chat))
+
+        print(chat)
 
     async def get_person_dialog_list():
         result = await tg.get_person_dialog_list()
         print(result)
 
+    async def get_full_channel(chat_id):
+        result = await tg.get_full_channel(chat_id)
+        print(result)
+
 
     with tg.client:
-        tg.client.loop.run_until_complete(scan_message_photo())
+        tg.client.loop.run_until_complete(get_full_channel(2232676331))

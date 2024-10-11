@@ -48,6 +48,7 @@ def tg_group_list():
             'created_at': g.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'account_id': g.account_id,
             'photo': g.avatar_path,
+            'title': g.title
         })
     return render_template('tg_group_manage.html', data=data, tag_list=tag_list, default_account_id=account_id, default_group_name=group_name)
 
@@ -65,11 +66,10 @@ def tg_group_add():
     name = get_or_exception('name', request.form, 'str')
     name_list = name.split(',')
     for name in name_list:
-        if TgGroup.query.filter(TgGroup.name == name).first():
-            continue
-        db.session.add(TgGroup(name=name))
-        db.session.flush()
-        TgGroup.query.filter_by(name=name, status=TgGroup.StatusType.NOT_JOIN).update(
+        if not TgGroup.query.filter(TgGroup.name == name).first():
+            db.session.add(TgGroup(name=name))
+            db.session.flush()
+        TgGroup.query.filter_by(name=name).update(
             {'status': TgGroup.StatusType.JOIN_ONGOING})
         db.session.commit()
         join_group.delay(name, 'web')
