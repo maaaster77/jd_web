@@ -89,8 +89,9 @@
                     <tr>
                         {#                        <th scope="col">序号</th>#}
                         <th scope="col">账户id</th>
-                        <th scope="col" style="width: 200px">头像</th>
-                        <th scope="col">群组名称</th>
+                        <th scope="col" style="width: 100px">头像</th>
+                        <th scope="col" style="width: 80px">群组名称</th>
+                        <th scope="col">链接</th>
                         <th scope="col">群组id</th>
                         <th style="width: 80px" scope="col">状态</th>
                         <th scope="col">描述</th>
@@ -104,7 +105,7 @@
                         <tr>
                             {#                            <td>{{ word.id }}</td>#}
                             <td>{{ word.account_id }}</td>
-                                   <td style="width: 100px">
+                            <td style="width: 100px">
                                 {% if word.photo %}
                                     <img style="width: 100px; height: 100px"
                                          src="{{ url_for('static', filename=word.photo) }}" alt="">
@@ -112,8 +113,11 @@
                             </td>
                             <td>
                                 <a href="{{ url_for('api.tg_chat_room_history', search_group_id=word.chat_id) }}">
-                                    {{ word.name }}
+                                    {{ word.title }}
                                 </a>
+                            </td>
+                            <td style="width: 80px">
+                                {{ word.name }}
                             </td>
                             <td>
                                 <a href="{{ url_for('api.tg_chat_room_history', search_group_id=word.chat_id) }}">
@@ -128,12 +132,19 @@
                                 <a href="{{ url_for('api.tg_group_delete', group_id=word.id) }}"
                                    class="btn btn-sm btn-danger delete-user"
                                    onclick="return confirm('确定删除该群组吗？')">删除</a>
-                                <a href="#" class="btn btn-sm  btn-primary edit-tag"
+                                <a style="margin-top: 10px" href="#" class="btn btn-sm  btn-primary edit-tag"
                                    data-parse-id="{{ word.id }}"
                                    data-parse-group_id="{{ word.chat_id }}" data-parse-tag="{{ word.tag_id_list }}"
                                    data-parse-group_name="{{ word.name }}"
                                    data-bs-toggle="modal"
                                    data-bs-target="#editRoleModal">编辑</a>
+                                <form id="updateForm" action="{{ url_for('api.tg_group_add') }}"
+                                      method="POST" style="display:inline;">
+                                    <input type="hidden" id="name" name="name" value="{{ word.name }}">
+                                    <button type="submit" class="btn btn-sm btn-success" style="margin-top: 10px;">
+                                        更新
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     {% endfor %}

@@ -53,7 +53,8 @@ def join_group(group_name, origin='celery'):
                     'status': TgGroup.StatusType.JOIN_SUCCESS,
                     'chat_id': chat_id,
                     'desc': channel_full.get("channel_description", ''),
-                    'avatar_path': file_path
+                    'avatar_path': file_path,
+                    'title': channel_full.get("title", ''),
                 }
             TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()

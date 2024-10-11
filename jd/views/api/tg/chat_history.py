@@ -37,8 +37,8 @@ def tg_chat_room_history():
                                                       message_id)
     total_pages = total_records // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
-    group_list = [{'chat_id': c.chat_id, 'group_name': c.name} for c in chat_room]
-    chat_room = {r.chat_id: r.name for r in chat_room}
+    group_list = [{'chat_id': c.chat_id, 'group_name': c.title} for c in chat_room]
+    chat_room = {r.chat_id: r.title for r in chat_room}
     data = []
     for r in rows:
         group_name = chat_room.get(r.chat_id, '')
@@ -82,7 +82,7 @@ def tg_chat_room_history():
                            default_user_id=search_user_id_list, default_search_content=search_content,
                            default_start_date=start_date,
                            default_search_account_id=search_account_id_list,
-                           default_end_date=end_date, tg_accounts=tg_accounts_list)
+                           default_end_date=end_date, tg_accounts=tg_accounts_list, max=max,min=min)
 
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,
