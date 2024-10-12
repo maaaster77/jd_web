@@ -1,36 +1,20 @@
 {% extends 'base.html' %}
 
 {% block style %}
+    <style>
+
+
+        table {
+            table-layout: fixed;
+        }
+
+        table td th {
+            width: 20%;
+        }
+    </style>
 
 {% endblock style %}
-<style>
-    .content-details {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        font-size: 0.8em;
-    }
 
-    .content-details .detail-row {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 5px;
-    }
-
-    .content-details .detail-row span {
-        border: 1px solid #ccc;
-        padding: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .tag-select {
-        height: auto; /* 允许自动调整高度 */
-        max-height: 200px; /* 设置最大高度，以适应屏幕空间 */
-        overflow-y: auto; /* 当内容超出时显示垂直滚动条 */
-    }
-</style>
 
 {% block content %}
     <div class="container mt-5">
@@ -89,15 +73,15 @@
                     <tr>
                         {#                        <th scope="col">序号</th>#}
                         <th scope="col">账户id</th>
-                        <th scope="col" style="width: 100px">头像</th>
-                        <th scope="col" style="width: 80px">群组名称</th>
+                        <th scope="col">头像</th>
+                        <th scope="col">群组名称</th>
                         <th scope="col">链接</th>
                         <th scope="col">群组id</th>
-                        <th style="width: 80px" scope="col">状态</th>
+                        <th scope="col">状态</th>
                         <th scope="col">描述</th>
                         <th scope="col">标签</th>
                         <th scope="col">创建时间</th>
-                        <th style="width: 100px" scope="col">操作</th>
+                        <th scope="col">操作</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -105,7 +89,7 @@
                         <tr>
                             {#                            <td>{{ word.id }}</td>#}
                             <td>{{ word.account_id }}</td>
-                            <td style="width: 100px">
+                            <td>
                                 {% if word.photo %}
                                     <img style="width: 100px; height: 100px"
                                          src="{{ url_for('static', filename=word.photo) }}" alt="">
@@ -116,7 +100,7 @@
                                     {{ word.title }}
                                 </a>
                             </td>
-                            <td style="width: 80px">
+                            <td>
                                 {{ word.name }}
                             </td>
                             <td>
@@ -124,11 +108,11 @@
                                     {{ word.chat_id }}
                                 </a>
                             </td>
-                            <td style="width: 80px">{{ word.status }}</td>
+                            <td>{{ word.status }}</td>
                             <td>{{ word.desc }}</td>
                             <td>{{ word.tag }}</td>
                             <td>{{ word.created_at }}</td>
-                            <td style="width: 100px">
+                            <td>
                                 <a href="{{ url_for('api.tg_group_delete', group_id=word.id) }}"
                                    class="btn btn-sm btn-danger delete-user"
                                    onclick="return confirm('确定删除该群组吗？')">删除</a>
