@@ -53,7 +53,7 @@ def chemical_product_info_list():
                            current_page=page,
                            page_size=page_size, default_search_platform_id=search_platform_id_list,
                            default_search_compound_name=search_compound_name,
-                           default_search_product_name=search_product_name)
+                           default_search_product_name=search_product_name, max=max,min=min)
 
 
 @api.route('/chemical/product/info/search', methods=['POST'])

@@ -1,36 +1,18 @@
 {% extends 'base.html' %}
 
 {% block style %}
+    <style>
+        table {
+            table-layout: fixed;
+        }
+
+        table td th {
+            width: 20%;
+        }
+    </style>
 
 {% endblock style %}
-<style>
-    .content-details {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        font-size: 0.8em;
-    }
 
-    .content-details .detail-row {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 5px;
-    }
-
-    .content-details .detail-row span {
-        border: 1px solid #ccc;
-        padding: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .tag-select {
-        height: auto; /* 允许自动调整高度 */
-        max-height: 200px; /* 设置最大高度，以适应屏幕空间 */
-        overflow-y: auto; /* 当内容超出时显示垂直滚动条 */
-    }
-</style>
 
 {% block content %}
     <div class="container mt-5">
@@ -108,40 +90,40 @@
                 <table class="table table-striped table-hover">
                     <thead>
                     <tr>
-                        <th scope="col" style="width: 100px">群组名称</th>
-                        <th scope="col" style="width: 100px">用户名称</th>
-                        <th scope="col" style="width: 100px">用户昵称</th>
-                        <th scope="col" style="width: 100px">用户id</th>
-                        <th scope="col" style="width: 100px">个人简介</th>
-                        <th scope="col" style="width: 200px">头像</th>
-                        <th scope="col" style="width: 200px">标签</th>
-                        <th scope="col" style="width: 100px">操作</th>
+                        <th scope="col">群组名称</th>
+                        <th scope="col">用户名称</th>
+                        <th scope="col">用户昵称</th>
+                        <th scope="col">用户id</th>
+                        <th scope="col">个人简介</th>
+                        <th scope="col">头像</th>
+                        <th scope="col">标签</th>
+                        <th scope="col">操作</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for word in data %}
                         <tr>
-                            <td style="width: 100px">{{ word.group_name }}</td>
-                            <td style="width: 100px">
+                            <td>{{ word.group_name }}</td>
+                            <td>
                                 <a href="{{ url_for('api.tg_chat_room_history', search_user_id=word.user_id) }}">
                                     {{ word.username }}
                                 </a>
                             </td>
-                            <td style="width: 100px">{{ word.nickname }}</td>
-                            <td style="width: 100px">
+                            <td>{{ word.nickname }}</td>
+                            <td>
                                 <a href="{{ url_for('api.tg_chat_room_history', search_user_id=word.user_id) }}">
                                     {{ word.user_id }}
                                 </a>
                             </td>
-                            <td style="width: 100px">{{ word.desc }}</td>
-                            <td style="width: 100px">
+                            <td>{{ word.desc }}</td>
+                            <td>
                                 {% if word.photo %}
                                     <img style="width: 100px; height: 100px"
                                          src="{{ url_for('static', filename=word.photo) }}" alt="">
                                 {% endif %}
                             </td>
-                            <td style="width: 100px">{{ word.tag }}</td>
-                            <td style="width: 100px">
+                            <td>{{ word.tag }}</td>
+                            <td>
                                 <a href="#" class="btn btn-sm  btn-primary edit-tag"
                                    data-parse-id="{{ word.id }}"
                                    data-parse-user_id="{{ word.user_id }}" data-parse-tag="{{ word.tag_id_list }}"
@@ -182,6 +164,7 @@
                         {% if current_page < total_pages %}
                             <li class="page-item">
                                 <a class="page-link" href="
+
 
 
 
