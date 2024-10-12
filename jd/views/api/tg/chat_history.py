@@ -29,13 +29,14 @@ def tg_chat_room_history():
     start_date = get_or_exception('start_date', args, 'str', '')
     end_date = get_or_exception('end_date', args, 'str', '')
     message_id = get_or_exception('message_id', args, 'int', 0)
+    reply_to_msg_id = get_or_exception('reply_to_msg_id', args, 'int', 0)
     search_chat_id_list = args.getlist('search_group_id')
     search_user_id_list = args.getlist('search_user_id')
     search_account_id_list = args.getlist('search_account_id')
 
     rows, total_records = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
                                                       search_content, page, page_size, search_account_id_list,
-                                                      message_id)
+                                                      message_id, reply_to_msg_id)
     total_pages = total_records // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
     group_list = [{'chat_id': c.chat_id, 'group_name': c.title} for c in chat_room]
@@ -88,7 +89,7 @@ def tg_chat_room_history():
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,
                                 page=None,
-                                page_size=None, search_account_id_list=None, message_id=0):
+                                page_size=None, search_account_id_list=None, message_id=0, reply_to_msg_id=0):
     # 需要修改sql_mode
     # set sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
     query = db.session.query(
@@ -128,14 +129,17 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         his = TgGroupChatHistory.query.filter(TgGroupChatHistory.user_id.in_(user_id_list)).all()
         chat_id_list = [t.chat_id for t in his]
         query = query.filter(TgGroupChatHistory.chat_id.in_(chat_id_list))
+    if reply_to_msg_id:
+        query = query.filter(TgGroupChatHistory.message_id == reply_to_msg_id)
     if message_id:
-        message = query.filter(TgGroupChatHistory.message_id == message_id).first()
+        message = query.filter(TgGroupChatHistory.id == message_id).first()
         if message:
             start_time = message.postal_time - datetime.timedelta(hours=1)
             end_time = message.postal_time + datetime.timedelta(minutes=5)
             query = query.filter(TgGroupChatHistory.chat_id == message.chat_id,
                                  TgGroupChatHistory.postal_time >= start_time,
                                  TgGroupChatHistory.postal_time <= end_time)
+
     total_records = query.count()
     if page and page_size:
         offset = (page - 1) * page_size
