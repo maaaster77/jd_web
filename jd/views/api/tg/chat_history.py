@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 
@@ -82,7 +83,7 @@ def tg_chat_room_history():
                            default_user_id=search_user_id_list, default_search_content=search_content,
                            default_start_date=start_date,
                            default_search_account_id=search_account_id_list,
-                           default_end_date=end_date, tg_accounts=tg_accounts_list, max=max,min=min)
+                           default_end_date=end_date, tg_accounts=tg_accounts_list, max=max, min=min)
 
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,
@@ -128,7 +129,13 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         chat_id_list = [t.chat_id for t in his]
         query = query.filter(TgGroupChatHistory.chat_id.in_(chat_id_list))
     if message_id:
-        query = query.filter(TgGroupChatHistory.message_id == message_id)
+        message = query.filter(TgGroupChatHistory.message_id == message_id).first()
+        if message:
+            start_time = message.postal_time - datetime.timedelta(hours=1)
+            end_time = message.postal_time + datetime.timedelta(minutes=5)
+            query = query.filter(TgGroupChatHistory.chat_id == message.chat_id,
+                                 TgGroupChatHistory.postal_time >= start_time,
+                                 TgGroupChatHistory.postal_time <= end_time)
     total_records = query.count()
     if page and page_size:
         offset = (page - 1) * page_size
