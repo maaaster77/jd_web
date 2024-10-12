@@ -39,7 +39,7 @@ def tg_chat_room_history():
                                                       message_id, reply_to_msg_id)
     total_pages = total_records // page_size
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
-    group_list = [{'chat_id': c.chat_id, 'group_name': c.title} for c in chat_room]
+    group_list = [{'chat_id': c.chat_id, 'group_name': f'{c.name}-{c.title}'} for c in chat_room]
     chat_room = {r.chat_id: r.title for r in chat_room}
     data = []
     for r in rows:
@@ -69,7 +69,7 @@ def tg_chat_room_history():
             'nickname': t.nickname,
             'desc': t.desc,
             'photo': t.photo,
-            'username': t.username
+            'username': f'{t.username}-{t.nickname}'
         }
 
     # Convert the dictionary values back into a list
