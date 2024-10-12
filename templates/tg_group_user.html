@@ -151,25 +151,46 @@
                             </li>
                         {% endif %}
 
-                        {% for page in range(1, total_pages+1) %}
+                        <!-- 显示当前页附近的页码 -->
+                        {% set start_page = max(1, current_page - 5) %}
+                        {% set end_page = min(total_pages, current_page + 5) %}
+
+                        {% if current_page > 3 %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for('api.tg_group_user_list', page=1, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">1</a>
+
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link">...</a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in range(start_page, end_page + 1) %}
                             {% if page == current_page %}
                                 <li class="page-item active"><a class="page-link" href="#">{{ page }}</a></li>
                             {% else %}
-                                <li class="page-item"><a class="page-link"
-                                                         href="{{ url_for('api.tg_group_user_list', page=page, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">{{ page }}</a>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="{{ url_for('api.tg_group_user_list', page=page, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">{{ page }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
 
+                        {% if current_page < total_pages - 2 %}
+                            <li class="page-item disabled">
+                                <a class="page-link">...</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for('api.tg_group_user_list', page=total_pages, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">{{ total_pages }}</a>
+                            </li>
+                        {% endif %}
+
                         {% if current_page < total_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="
-
-
-
-
-
-
+                                <a class="page-link"
+                                   href="
                                         {{ url_for('api.tg_group_user_list', page=current_page+1, page_size=page_size, search_group_id=default_search_group_id, search_username=default_search_username, search_nickname=default_search_nickname, search_desc=default_search_desc) }}">下一页</a>
                             </li>
                         {% else %}

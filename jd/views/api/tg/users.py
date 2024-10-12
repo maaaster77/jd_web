@@ -67,7 +67,7 @@ def tg_group_user_list():
     return render_template('tg_group_user.html', data=data, group_list=group_list, total_pages=total_pages,
                            current_page=page, page_size=page_size, default_search_group_id=search_group_id,
                            default_search_username=search_username, tag_list=tag_list,
-                           default_search_nickname=search_nickname, default_search_desc=search_desc)
+                           default_search_nickname=search_nickname, default_search_desc=search_desc, max=max, min=min)
 
 
 @api.route('/tg/group_user/download', methods=['GET'])
