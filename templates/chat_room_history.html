@@ -6,6 +6,7 @@
         table {
             table-layout: fixed;
         }
+
         table td th {
             width: 20%;
         }
@@ -124,7 +125,9 @@
                             <td>{{ word.group_name }}</td>
                             <td>{{ word.username }}</td>
                             <td>{{ word.nickname }}</td>
-                            <td>{{ word.message }}
+                            <td>
+                                <a href="{{ url_for('api.tg_chat_room_history', search_group_id=[word.chat_id], message_id=word.id) }}"
+                                   target="_blank">{{ word.message }}</a>
                                 {% for photo in word.photo_paths %}
                                     {% if photo %}
                                         <img style="width: 65px; height: auto"
@@ -141,7 +144,7 @@
                                        download="{{ url_for('static', filename=path) }}">文件{{ loop.index }}</a>
                                 {% endfor %}
                                 {% if word.reply_to_msg_id > 0 %}
-                                    <a href="{{ url_for('api.tg_chat_room_history', chat_id=[word.chat_id], message_id=word.reply_to_msg_id) }}"
+                                    <a href="{{ url_for('api.tg_chat_room_history', search_group_id=[word.chat_id], reply_to_msg_id=word.reply_to_msg_id) }}"
                                        target="_blank">引用</a>
                                 {% endif %}
                             </td>
@@ -203,6 +206,7 @@
                             <li class="page-item">
                                 <a class="page-link"
                                    href="
+
 
 
 
