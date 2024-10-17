@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 @celery.task
 def fetch_tg_history_job():
+    db.session.remove()
     logger.info('start fetch_tg_history_job...')
     job_name = 'fetch_tg_history'
     queue = JobQueueLog.query.filter_by(name=job_name).order_by(JobQueueLog.id.desc()).first()
@@ -31,4 +32,6 @@ def fetch_tg_history_job():
     })
     db.session.commit()
     logger.info('end...')
+    db.session.remove()
+
 
