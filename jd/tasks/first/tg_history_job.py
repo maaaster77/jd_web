@@ -21,6 +21,12 @@ def fetch_tg_history_job():
         db.session.commit()
     else:
         logger.info(f'{job_name} is running')
+        if datetime.datetime.now().timestamp() - queue.created_at.timestamp() >= 3600:
+            logger.info(f'{job_name} exception, skip')
+            JobQueueLog.query.filter_by(id=queue.id, status=JobQueueLog.StatusType.RUNNING).update({
+                'status': JobQueueLog.StatusType.FINISHED
+            })
+            db.session.commit()
         return
     try:
         TgChatHistoryJob().main()
