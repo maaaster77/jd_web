@@ -78,7 +78,7 @@ class TgChatHistoryJob:
                     document_ext=data.get("document", {}).get('ext', ''),
                 )
                 db.session.add(obj)
-            db.session.commit()
+                db.session.commit()
             # 获取用户信息
             if chat_type != 'group':
                 return
@@ -96,6 +96,7 @@ class TgChatHistoryJob:
             chat_id = chat_room.chat_id
             with tg.client:
                 tg.client.loop.run_until_complete(fetch_chat_history(chat_room.name, chat_id))
+            db.session.commit()
             logger.info(f'获取{chat_room.name}记录完成...')
             logger.info('sleep 5s...')
             time.sleep(5)
