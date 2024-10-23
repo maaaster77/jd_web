@@ -7,6 +7,7 @@ import pandas as pd
 from io import BytesIO
 
 from openpyxl.drawing.image import Image
+from openpyxl.utils import get_column_letter
 from sqlalchemy import func
 
 from jd import app, db
@@ -218,8 +219,8 @@ def tg_chat_room_history_download():
             cell = ws.cell(row=idx + 2, column=len(columns) + i)  # 假设图片放在最后一列
             cell.value = ''
             ws.add_image(img, cell.coordinate)
-            print(f'columns:{chr(64 + len(columns) + i)}, {64 + len(columns) + i}')
-            ws.column_dimensions[chr(64 + len(columns) + i)].width = 65 / 6  # 适当调整比例
+            column_letter = get_column_letter(len(columns) + i + 1)  # 获取列的字母标
+            ws.column_dimensions[column_letter].width = 65 / 6  # 适当调整比例
         ws.row_dimensions[idx + 2].height = 100  # 适当调整比例
     writer.close()
 
