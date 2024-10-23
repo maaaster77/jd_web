@@ -193,8 +193,7 @@ def tg_chat_room_history_download():
     ws = workbook['Sheet1']
     for idx, row in df.iterrows():
         print(f'row:{row}')
-        logger.info(f"{row['群组名称']}, photo count:{len(row['图片'].split(','))}")
-        print(f"title:{row['群组名称']}, photo count:{len(row['图片'].split(','))}, paths:{row['图片']}")
+        # print(f"title:{row['群组名称']}, photo count:{len(row['图片'].split(','))}, paths:{row['图片']}")
         if pd.isna(row['图片']):
             continue
         if not row['图片']:
