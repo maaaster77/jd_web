@@ -13,6 +13,8 @@ class TgGroup(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     account_id = db.Column(db.String(128), nullable=False, default='', comment='tg_account.user_id')
     avatar_path = db.Column(db.String(1024), nullable=False, default='', comment='头像本地地址')
+    remark = db.Column(db.String(128), nullable=False, default='', comment='备注')
+    group_type = db.Column(db.Integer, nullable=False, default=1, comment='1-群组 2-频道')
 
 
     class StatusType:
@@ -20,3 +22,7 @@ class TgGroup(db.Model):
         JOIN_SUCCESS = 1
         JOIN_FAIL = 2
         JOIN_ONGOING = 3
+
+    class GroupType:
+        GROUP = 1
+        CHANNEL = 2

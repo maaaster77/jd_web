@@ -216,7 +216,7 @@ class TelegramAPIs(object):
                     channel_description = channel_full.full_chat.about
                     username = channel_full.chats[0].username
                     megagroup = channel_full.chats[0].megagroup
-                    group_type = 'channel'
+                    group_type = 'channel' if not megagroup else 'group'
                 elif isinstance(chat, Chat):
                     channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
@@ -565,7 +565,7 @@ class TelegramAPIs(object):
             "id": chat.id,
             "title": chat.title,
             "username": username,
-            "megagroup": "channel" if megagroup else "group",
+            "megagroup": "channel" if not megagroup else "group",
             "member_count": member_count,
             "channel_description": channel_description,
             "is_public": 1 if username else 0,
@@ -667,8 +667,8 @@ if __name__ == '__main__':
         print(chat)
 
     async def get_person_dialog_list():
-        result = await tg.get_person_dialog_list()
-        print(result)
+        async for res in tg.get_dialog_list():
+            print(res)
 
     async def get_full_channel(chat_id):
         result = await tg.get_full_channel(chat_id)
@@ -676,4 +676,4 @@ if __name__ == '__main__':
 
 
     with tg.client:
-        tg.client.loop.run_until_complete(get_full_channel(2232676331))
+        tg.client.loop.run_until_complete(get_full_channel(1610505522))

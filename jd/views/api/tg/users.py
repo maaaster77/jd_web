@@ -23,6 +23,7 @@ def tg_group_user_list():
     search_desc = get_or_exception('search_desc', args, 'str', '')
     search_group_id = get_or_exception('search_group_id', args, 'str', '')
     search_username = get_or_exception('search_username', args, 'str', '')
+    remark = get_or_exception('remark', args, 'str', '')
     offset = (page - 1) * page_size
     query = TgGroupUserInfo.query
     if search_group_id:
@@ -33,6 +34,8 @@ def tg_group_user_list():
         query = query.filter(TgGroupUserInfo.nickname.like(f'%{search_nickname}%'))
     if search_desc:
         query = query.filter(TgGroupUserInfo.desc.like(f'%{search_desc}%'))
+    if remark:
+        query = query.filter(TgGroupUserInfo.remark.like(f'%{remark}%'))
     total_records = query.count()
     tag_list = TagService.list()
     group_user_list = query.order_by(TgGroupUserInfo.id.desc()).offset(offset).limit(page_size).all()
@@ -59,7 +62,8 @@ def tg_group_user_list():
             'desc': group_user.desc,
             'tag': tag_text,
             'tag_id_list': ','.join(parse_tag) if parse_tag else '',
-            'group_name': chat_room.get(group_user.chat_id, '')
+            'group_name': chat_room.get(group_user.chat_id, ''),
+            'remark': group_user.remark
         })
 
     total_pages = (total_records + page_size - 1) // page_size
@@ -67,7 +71,7 @@ def tg_group_user_list():
     return render_template('tg_group_user.html', data=data, group_list=group_list, total_pages=total_pages,
                            current_page=page, page_size=page_size, default_search_group_id=search_group_id,
                            default_search_username=search_username, tag_list=tag_list,
-                           default_search_nickname=search_nickname, default_search_desc=search_desc, max=max, min=min)
+                           default_search_nickname=search_nickname, default_search_desc=search_desc, max=max, min=min, default_remark=remark)
 
 
 @api.route('/tg/group_user/download', methods=['GET'])
@@ -121,6 +125,7 @@ def tg_group_user_modify_tag():
     args = request.json
     tg_user_id = get_or_exception('tg_user_id', args, 'int')
     tag_id_list = get_or_exception('tag_id_list', args, 'str', '')
+    remark = get_or_exception('remark', args, 'str', '')
     if tag_id_list:
         tag_id_list = tag_id_list.split(',')
         tag_id_list = [int(t) for t in tag_id_list]
@@ -128,5 +133,8 @@ def tg_group_user_modify_tag():
     for tag_id in tag_id_list:
         obj = TgGroupUserTag(tg_user_id=tg_user_id, tag_id=tag_id)
         db.session.add(obj)
+    TgGroupUserInfo.query.filter(TgGroupUserInfo.id == tg_user_id).update({
+        'remark': remark
+    })
     db.session.commit()
     return success()

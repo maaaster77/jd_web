@@ -74,6 +74,8 @@
                                    onclick="return confirm('确定删除该账号吗？')">删除</a>
                                 <a href="{{ url_for('api.tg_group_list', account_id=word.user_id) }}"
                                    class="btn btn-sm btn-primary delete-user">查看群组</a>
+                                <a href="{{ url_for('api.tg_chat_room_history', search_account_id=word.id)}}"
+                                   class="btn btn-sm  btn-success delete-user">聊天记录</a>
                                 {% if word.status in [3,2] %}
                                     <a type="button" class="btn btn-sm btn-primary" id="nextStepButton"
                                        data-bs-toggle="modal"

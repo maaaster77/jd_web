@@ -40,6 +40,7 @@ def join_group(group_name, origin='celery'):
                 }
             else:
                 channel_full = await tg.get_full_channel(chat_id)
+                logger.info(f'{group_name} group info:{channel_full}')
                 url = f'https://t.me/{group_name.replace("t.me/", "")}'
                 data = TelegramSpider().search_query(url)
                 if not data:
@@ -55,6 +56,7 @@ def join_group(group_name, origin='celery'):
                     'desc': channel_full.get("channel_description", ''),
                     'avatar_path': file_path,
                     'title': channel_full.get("title", ''),
+                    'group_type': TgGroup.GroupType.CHANNEL if channel_full.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
                 }
             TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()
