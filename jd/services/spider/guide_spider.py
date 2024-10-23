@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -72,6 +73,7 @@ class GuideChemSpider:
             print(f'{category_link}:开始爬取第{page}页...')
             wait_seconds = random.uniform(1, 2)
             time.sleep(wait_seconds)
+            print(f'抓取:{url}')
             html = self._send_request(url)
             if not html:
                 continue
@@ -123,19 +125,19 @@ class GuideChemSpider:
             contact_button.click()
             time.sleep(1)
 
-
             # 在这里我们直接通过class定位，实际情况下可能需要根据页面结构调整选择器
             contact_info_div = self.driver.find_element(By.CLASS_NAME, "clearfix")
             contact_number_div = contact_info_div.find_element(By.CLASS_NAME, "det")
             contact_number = contact_number_div.text
-
-            return {
+            d = {
                 'product_name': product_name.replace('\r', '').replace('\n', '').replace(' ', ''),
                 'compound_name': compound_name.replace('\r', '').replace('\n', ''),
                 'seller_name': seller_name,
                 'contact_number': contact_number,
                 'origin': p_link
             }
+            print(f'{d}')
+            return d
         except Exception as e:
             print(e)
         return {}
@@ -161,6 +163,8 @@ class GuideChemSpider:
     def start_selenium(self):
         # 初始化webdriver实例
         # https://zhuanlan.zhihu.com/p/657757693 安装Chromedrive
+        display = Display(visible=False, size=(800, 600))
+        display.start()
         chrome_options = Options()
         chrome_options.add_argument('--headless')  # 启动无头模式
         chrome_options.add_argument('--disable-gpu')  # 一些系统可能需要禁用 GPU 加速
@@ -178,4 +182,3 @@ if __name__ == '__main__':
     m_spider = GuideChemSpider()
     for data in m_spider.search_query(page=1):
         print(data)
-
