@@ -121,7 +121,16 @@ class HuaYuanSpider:
             td_list = soup.find('tr', id='firsttr').find_all('td')
             for td in td_list:
                 compound_name = td.text
-            li_list = soup.find('ul', class_='list-unstyled').find_all('li')
+            li_list_unstyled = soup.find('ul', class_='list-unstyled')
+            if not li_list_unstyled:
+                yield {
+                    'product_name': '',
+                    'seller_name': '',
+                    'contact_number': '',
+                    'compound_name': '',
+                    'qq_number': '',
+                }
+            li_list = li_list_unstyled.find_all('li')
             for li in li_list:
                 a_tag = li.find('a')
                 if not seller_name and a_tag and 'saler' in a_tag.get('href'):
@@ -141,8 +150,6 @@ class HuaYuanSpider:
                     parsed_url = urlparse(qq_url)
                     query_params = parse_qs(parsed_url.query)
                     qq_number = query_params.get('qqId', [''])[0]
-
-
 
             yield {
                 'product_name': product_name.replace('\r', '').replace('\n', '').replace(' ', ''),
