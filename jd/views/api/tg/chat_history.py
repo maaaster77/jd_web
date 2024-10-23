@@ -192,13 +192,13 @@ def tg_chat_room_history_download():
     # 加载图片到Excel
     ws = workbook['Sheet1']
     for idx, row in df.iterrows():
+        logger.info(f"{row['群组名称']}, photo count:{len(row['图片'].split(','))}")
         if pd.isna(row['图片']):
             continue
         if not row['图片']:
             continue
 
         i = 0
-        logger.info(f"图片长度:{len(row['图片'].split(','))}")
         for i, img_path in enumerate(row['图片'].split(',')):
             if not img_path:
                 continue
