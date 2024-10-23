@@ -98,6 +98,8 @@ class HuaYuanSpider:
                         continue
                     json_data = resp.json()
                     products = json_data.get('data', {}).get('products', [])
+                    if not products:
+                        continue
                 except Exception as e:
                     continue
                 time.sleep(1)
