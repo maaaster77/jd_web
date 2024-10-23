@@ -13,4 +13,6 @@ class TgGroupUserInfo(db.Model):
     avatar_path = db.Column(db.String(1024), nullable=False, default='', comment='头像本地地址')
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    remark = db.Column(db.String(128), nullable=False, default='', comment='备注')
+
 

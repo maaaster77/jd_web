@@ -162,7 +162,7 @@ def tg_chat_room_history_download():
     rows, _ = fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list,
                                           search_content, search_account_id_list=search_account_id_list)
     chat_room = TgGroup.query.filter_by(status=TgGroup.StatusType.JOIN_SUCCESS).all()
-    chat_room = {r.chat_id: r.name for r in chat_room}
+    chat_room = {r.chat_id: r.title for r in chat_room}
     data = []
     for r in rows:
         group_name = chat_room.get(r.chat_id, '')
@@ -198,6 +198,7 @@ def tg_chat_room_history_download():
             continue
 
         i = 0
+        logger.info(f"图片长度:{len(row['图片'].split(','))}")
         for i, img_path in enumerate(row['图片'].split(',')):
             if not img_path:
                 continue

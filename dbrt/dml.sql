@@ -271,4 +271,13 @@ alter table tg_group_chat_history add `document_path` varchar(256) NOT NULL DEFA
 
 alter table tg_group_chat_history add `document_ext` varchar(16) NOT NULL DEFAULT '' COMMENT '文件类型';
 
+alter table tg_group add remark varchar(128) not null default '' comment '备注';
+alter table tg_group add index `idx_remark` (`remark`);
+
+alter table tg_group_user_info add remark varchar(128) not null default '' comment '备注';
+alter table tg_group_user_info add index `idx_remark` (`remark`);
+
+alter table tg_group add group_type int not null default 1 comment '1-群组 2-频道';
+
+
 
