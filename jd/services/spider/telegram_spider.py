@@ -220,7 +220,7 @@ class TelegramAPIs(object):
                     megagroup = channel_full.chats[0].megagroup
                     group_type = 'channel' if not megagroup else 'group'
                     photo = chat.photo
-                    if photo:
+                    if photo and hasattr(photo, "photo_id"):
                         file_full_path = f'{avatar_path}/{str(photo.photo_id)}.jpg'
                         if not os.path.exists(file_full_path):
                             photo_path = f'images/avatar/{str(photo.photo_id)}.jpg'
