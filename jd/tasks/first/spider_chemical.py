@@ -23,7 +23,7 @@ def deal_spider_chemical(platform_id):
         #         ChemicalPlatformProductInfo.product_name == data['product_name'],
         #         platform_id == platform_id).first():
         #     continue
-        if not data['contact_number']:
+        if not data.get('product_name', ''):
             continue
         obj = ChemicalPlatformProductInfo(platform_id=platform_id, product_name=data['product_name'],
                                           compound_name=data['compound_name'], seller_name=data['seller_name'],
@@ -49,3 +49,12 @@ def chemical_data_get_job():
             logger.error(e)
             continue
         time.sleep(60)
+
+
+if __name__ == '__main__':
+    app.ready(db_switch=True, web_switch=False, worker_switch=True)
+    # send_phone_code(24)
+    # 验证码登录
+    # login_tg_account(24)
+    # 密码登录
+    deal_spider_chemical(4)
