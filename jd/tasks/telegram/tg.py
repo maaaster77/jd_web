@@ -168,65 +168,84 @@ def fetch_person_chat_history(account_id, origin='celery'):
     tg = TelegramAPIs()
     session_dir = f'{app.static_folder}/utils'
     session_name = f'{session_dir}/{tg_account.name}/jd_{origin}.session'
-    tg.init_client(
-        session_name=session_name, api_id=tg_account.api_id, api_hash=tg_account.api_hash
-    )
+    if not os.path.exists(session_name):
+        logger.info(f'session {session_name} does not exist')
+    try:
+        tg.init_client(
+            session_name=session_name, api_id=tg_account.api_id, api_hash=tg_account.api_hash
+        )
+    except Exception as e:
+        logger.info(f'init_client error: {e}')
+        return
 
-    async def get_person_dialog_list(group_name='私人聊天'):
-        chat_list = await tg.get_person_dialog_list()
-        for chat in chat_list:
-            chat_id = chat['id']
-            try:
-                chat = await tg.get_dialog(chat_id)
-            except Exception as e:
-                logger.info(f'{group_name}, 未获取到群组，准备重新加入...{e}')
-                chat = None
-            if not chat:
+    group_id_list = []
+
+    async def get_person_dialog_list():
+        async for chat_info in tg.get_dialog_list():
+            temp_data = chat_info.get('data', {})
+            _chat_id = temp_data.get('id', 0)
+            if not _chat_id:
+                logger.info(f'account, {account_id}, chat_id is empty, data:{temp_data}')
                 continue
-            param = {
-                "limit": 60,
-                # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
-                "last_message_id": -1,
-            }
-            history_list = []
-            async for data in tg.scan_message(chat, **param):
-                print(data)
-                history_list.append(data)
-            history_list.reverse()
-            message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
-            msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list),
-                                                  TgGroupChatHistory.chat_id == str(chat_id)).all()
-            already_message_id_list = [data.message_id for data in msg]
-            for data in history_list:
-                user_id = data.get("user_id", 0)
-                # if user_id == 777000:
-                #     # 客服
-                #     continue
-                message_id = str(data.get("message_id", 0))
-                if message_id in already_message_id_list:
-                    continue
-                user_id = str(user_id)
-                nickname = data.get("nick_name", "")
 
-                obj = TgGroupChatHistory(
-                    chat_id=str(chat_id),
-                    message_id=message_id,
-                    nickname=nickname,
-                    username=data.get("user_name", ""),
-                    user_id=user_id,
-                    postal_time=data.get("postal_time", datetime.datetime.now()) + datetime.timedelta(hours=8),
-                    message=data.get("message", ""),
-                    reply_to_msg_id=str(data.get("reply_to_msg_id", 0)),
-                    photo_path=data.get("photo", {}).get('file_path', ''),
-                    document_path=data.get("document", {}).get('file_path', ''),
-                    document_ext=data.get("document", {}).get('ext', ''),
-                )
-                db.session.add(obj)
-            db.session.commit()
+            group_id_list.append(_chat_id)
 
-    # 私人聊天
+    async def get_chat_history_list(chat_id):
+        param = {
+            "limit": 60,
+            # "offset_date": datetime.datetime.now() - datetime.timedelta(hours=8) - datetime.timedelta(minutes=20),
+            "last_message_id": -1,
+        }
+        logger.info(f'account:{account_id}, 开始获取群组：{chat_id}，记录')
+
+        try:
+            chat = await tg.get_dialog(chat_id)
+        except Exception as e:
+            logger.info(f'chat_id:{chat_id}, 未获取到群组...{e}')
+            return
+        history_list = []
+        async for data in tg.scan_message(chat, **param):
+            history_list.append(data)
+        history_list.reverse()
+        message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
+        msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list),
+                                              TgGroupChatHistory.chat_id == str(chat_id)).all()
+        already_message_id_list = [data.message_id for data in msg]
+        for data in history_list:
+            user_id = data.get("user_id", 0)
+            if user_id == 777000:
+                # 客服
+                continue
+            message_id = str(data.get("message_id", 0))
+            if message_id in already_message_id_list:
+                continue
+            logger.info(f'fetch_person_chat_history data:{data}')
+            user_id = str(user_id)
+            nickname = data.get("nick_name", "")
+
+            obj = TgGroupChatHistory(
+                chat_id=str(chat_id),
+                message_id=message_id,
+                nickname=nickname,
+                username=data.get("user_name", ""),
+                user_id=user_id,
+                postal_time=data.get("postal_time", datetime.datetime.now()) + datetime.timedelta(hours=8),
+                message=data.get("message", ""),
+                reply_to_msg_id=str(data.get("reply_to_msg_id", 0)),
+                photo_path=data.get("photo", {}).get('file_path', ''),
+                document_path=data.get("document", {}).get('file_path', ''),
+                document_ext=data.get("document", {}).get('ext', ''),
+            )
+            db.session.add(obj)
+        db.session.commit()
+
     with tg.client:
         tg.client.loop.run_until_complete(get_person_dialog_list())
+
+    for chat_id in group_id_list:
+        with tg.client:
+            tg.client.loop.run_until_complete(get_chat_history_list(chat_id))
+    tg.close_client()
 
 
 @celery.task
@@ -257,7 +276,8 @@ def fetch_account_channel(account_id, origin='celery'):
                     'avatar_path': data.get('photo_path', ''),
                     'chat_id': chat_id,
                     'title': data.get("title", ''),
-                    'group_type': TgGroup.GroupType.CHANNEL if data.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
+                    'group_type': TgGroup.GroupType.CHANNEL if data.get('megagroup',
+                                                                        '') == 'channel' else TgGroup.GroupType.GROUP,
                 })
             else:
                 obj = TgGroup(
@@ -268,7 +288,8 @@ def fetch_account_channel(account_id, origin='celery'):
                     status=TgGroup.StatusType.JOIN_SUCCESS,
                     avatar_path=data.get('photo_path', ''),
                     title=data.get("title", ''),
-                    group_type=TgGroup.GroupType.CHANNEL if data.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
+                    group_type=TgGroup.GroupType.CHANNEL if data.get('megagroup',
+                                                                     '') == 'channel' else TgGroup.GroupType.GROUP,
                 )
                 db.session.add(obj)
             db.session.commit()
