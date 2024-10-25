@@ -186,7 +186,7 @@ def tg_chat_room_history_download():
     # 将DataFrame保存到Excel文件
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
-    df.to_excel(writer, index=False, sheet_name='Sheet1', encoding='GBK')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
 
     # 获取Excel工作簿
     workbook = writer.book
