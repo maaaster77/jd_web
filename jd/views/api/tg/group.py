@@ -199,11 +199,11 @@ def tg_group_download():
     for d in data:
         result.append({
             '群组名称': d['title'],
-            '账户id':d['account_id'],
-            '链接':d['name'],
-            '群组id':d['chat_id'],
+            '账户id': d['account_id'],
+            '链接': d['name'],
+            '群组id': d['chat_id'],
             '标签': d['tag'],
-            '类型': '群组' if d['group_type']==1 else '频道',
+            '类型': '群组' if d['group_type'] == 1 else '频道',
             '备注': d['remark'],
             '最新时间': d['latest_postal_time'],
             '描述': d['desc'],
@@ -213,7 +213,7 @@ def tg_group_download():
     df = pd.DataFrame(result, columns=columns)
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
-    df.to_excel(writer, index=False, sheet_name='Sheet1', encoding='GBK')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
     writer.close()
     # 设置响应头
     output.seek(0)
@@ -224,6 +224,3 @@ def tg_group_download():
     response.headers["Content-type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     return response
-
-
-
