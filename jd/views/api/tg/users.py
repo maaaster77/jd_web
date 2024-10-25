@@ -1,5 +1,6 @@
 import collections
 from io import BytesIO
+from urllib.parse import quote
 
 import pandas as pd
 from flask import render_template, request, make_response
@@ -109,12 +110,13 @@ def tg_group_user_download():
 
     # 将DataFrame保存到Excel文件
     output = BytesIO()
-    df.to_csv(output, index=False, encoding='utf-8')
+    df.to_csv(output, index=False)
 
     # 设置响应头
     output.seek(0)
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=users.csv"
+    file_name = 'users.csv'
+    response.headers["Content-Disposition"] = f"attachment; filename={quote(file_name)}; filename*=utf-8''{quote(file_name)}"
     response.headers["Content-type"] = "text/csv"
 
     return response

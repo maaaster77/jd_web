@@ -1,7 +1,10 @@
 import collections
 import datetime
+from io import BytesIO
+from urllib.parse import quote
 
-from flask import render_template, request, redirect, url_for
+import pandas as pd
+from flask import render_template, request, redirect, url_for, make_response
 from sqlalchemy import func
 
 from jd import db
@@ -125,3 +128,102 @@ def tg_group_tag_update():
     })
     db.session.commit()
     return success()
+
+
+@api.route('/tg/group/download', methods=['GET'])
+def tg_group_download():
+    args = request.args
+    account_id = get_or_exception('account_id', args, 'str', '')
+    group_name = get_or_exception('group_name', args, 'str', '')
+    remark = get_or_exception('remark', args, 'str', '')
+    query = TgGroup.query
+    if account_id:
+        query = query.filter(TgGroup.account_id == account_id)
+    if group_name:
+        query = query.filter(TgGroup.name.like('%' + group_name + '%'))
+    if remark:
+        query = query.filter(TgGroup.remark.like('%' + remark + '%'))
+    groups = query.order_by(TgGroup.id.desc()).all()
+    tag_list = TagService.list()
+    if not groups:
+        return render_template('tg_group_manage.html', data=[], tag_list=tag_list)
+    group_id_list = [g.id for g in groups]
+    parse_tag_list = TgGroupTag.query.filter(TgGroupTag.group_id.in_(group_id_list)).all()
+    parse_tag_result = collections.defaultdict(list)
+    for p in parse_tag_list:
+        parse_tag_result[p.group_id].append(str(p.tag_id))
+    tag_dict = {t['id']: t['name'] for t in tag_list}
+    chat_postal_time = TgGroupChatHistory.query.with_entities(TgGroupChatHistory.chat_id,
+                                                              func.max(TgGroupChatHistory.postal_time).label(
+                                                                  'latest_postal_time')).group_by(
+        TgGroupChatHistory.chat_id).all()
+    chat_postal_time_dict = {t.chat_id: t.latest_postal_time for t in chat_postal_time}
+
+    data = []
+    no_chat_history_group = []
+    for g in groups:
+        parse_tag = parse_tag_result.get(g.id, [])
+        tag_text = ','.join([tag_dict.get(int(t), '') for t in parse_tag if tag_dict.get(int(t), '')])
+        latest_postal_time = chat_postal_time_dict.get(g.chat_id, '')
+        d = {
+            'id': g.id,
+            'name': g.name,
+            'chat_id': g.chat_id,
+            'status': TgService.STATUS_MAP[g.status],
+            'desc': g.desc,
+            'tag': tag_text,
+            'tag_id_list': ','.join(parse_tag) if parse_tag else '',
+            'created_at': g.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'account_id': g.account_id,
+            'photo': g.avatar_path,
+            'title': g.title,
+            'remark': g.remark,
+            'latest_postal_time': latest_postal_time,
+            'three_days_ago': 1 if latest_postal_time and latest_postal_time < (
+                    datetime.datetime.now() - datetime.timedelta(days=3)) else 0,
+            'group_type': g.group_type,
+        }
+        if not latest_postal_time:
+            no_chat_history_group.append(d)
+            continue
+        data.append(d)
+    data = sorted(data, key=lambda x: x['latest_postal_time'])
+    data.extend(no_chat_history_group)
+    for d in data:
+        if not d['latest_postal_time']:
+            continue
+        d['latest_postal_time'] = d['latest_postal_time'].strftime('%Y-%m-%d %H:%M:%S') if d[
+            'latest_postal_time'] else ''
+
+    result = []
+    for d in data:
+        result.append({
+            '群组名称': d['title'],
+            '账户id':d['account_id'],
+            '链接':d['name'],
+            '群组id':d['chat_id'],
+            '标签': d['tag'],
+            '类型': '群组' if d['group_type']==1 else '频道',
+            '备注': d['remark'],
+            '最新时间': d['latest_postal_time'],
+            '描述': d['desc'],
+        })
+
+    columns = ['群组名称', '账户id', '链接', '群组id', '标签', '类型', '备注', '最新时间', '描述']
+    df = pd.DataFrame(result, columns=columns)
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name='Sheet1', encoding='GBK')
+    writer.close()
+    # 设置响应头
+    output.seek(0)
+    response = make_response(output.getvalue())
+    file_name = 'group.xlsx'
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename={quote(file_name)}; filename*=utf-8''{quote(file_name)}"
+    response.headers["Content-type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    return response
+
+
+

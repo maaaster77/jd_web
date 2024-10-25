@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+from urllib.parse import quote
 
 from flask import render_template, request, make_response, send_file
 import pandas as pd
@@ -185,7 +186,7 @@ def tg_chat_room_history_download():
     # 将DataFrame保存到Excel文件
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    df.to_excel(writer, index=False, sheet_name='Sheet1', encoding='GBK')
 
     # 获取Excel工作簿
     workbook = writer.book
@@ -227,7 +228,8 @@ def tg_chat_room_history_download():
     # 设置响应头
     output.seek(0)
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=chat_history.xlsx"
+    file_name = 'chat_history.xlsx'
+    response.headers["Content-Disposition"] = f"attachment; filename={quote(file_name)}; filename*=utf-8''{quote(file_name)}"
     response.headers["Content-type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     return response

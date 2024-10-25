@@ -70,6 +70,9 @@
                         <button type="submit" class="btn btn-sm  btn-primary">查询</button>
                         <a href="{{ url_for('api.tg_group_list') }}" class="btn btn-sm btn-success"
                            style="margin-left: 10px">重置</a>
+                        <a href="{{ url_for('api.tg_group_download', **request.args.to_dict()) }}"
+                           class="btn btn-sm btn-warning"
+                           style="margin-left: 10px">下载</a>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group d-flex align-items-center" style="margin-top: 10px">
