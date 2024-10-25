@@ -224,7 +224,7 @@ class TelegramAPIs(object):
                         file_full_path = f'{avatar_path}/{str(photo.photo_id)}.jpg'
                         if not os.path.exists(file_full_path):
                             photo_path = f'images/avatar/{str(photo.photo_id)}.jpg'
-                            await self.client.download_media(message=chat, file=file_full_path, thumb=-1)
+                            await self.client.download_profile_photo(entity=chat, file=file_full_path)
                 elif isinstance(chat, Chat):
                     channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
