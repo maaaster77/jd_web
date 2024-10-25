@@ -101,7 +101,7 @@ class ChemicalNineSpider:
     def request_product_detail(self, link):
         html = self._send_request(link)
         if not html:
-            return
+            return {}
         soup = BeautifulSoup(html, 'lxml')
         product_name = soup.find('div', class_='kj-prolistone-h1').text
         compound_name = ''
@@ -110,7 +110,7 @@ class ChemicalNineSpider:
         qq_number = ''
         contact_li = soup.find(class_='kj-caschangjialist-contact')
         if not contact_li:
-            return
+            return {}
         contact_li_list = contact_li.find_all('li')
         for li in contact_li_list:
             li_text = li.text
