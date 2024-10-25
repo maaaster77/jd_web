@@ -203,10 +203,12 @@ class TelegramAPIs(object):
         :return: 返回json, {'data': [], 'result': 'success/failed', 'reason':''}
         data: list类型，
         """
+        avatar_path = os.path.join(app.static_folder, 'images/avatar')
+        os.makedirs(avatar_path, exist_ok=True)
         async for dialog in self.client.iter_dialogs():
             # 确保每次数据的准确性
-            result_json = {"result": "success", "reason": "ok"}
-            out = {}
+            result_json = {"result": "success", "reason": "ok", 'data': {}}
+            photo_path = ''
             # 只爬取频道或群组，排除个人
             if hasattr(dialog.entity, "title"):
                 chat = dialog.entity
@@ -217,6 +219,12 @@ class TelegramAPIs(object):
                     username = channel_full.chats[0].username
                     megagroup = channel_full.chats[0].megagroup
                     group_type = 'channel' if not megagroup else 'group'
+                    photo = chat.photo
+                    if photo:
+                        file_full_path = f'{avatar_path}/{str(photo.photo_id)}.jpg'
+                        if not os.path.exists(file_full_path):
+                            photo_path = f'images/avatar/{str(photo.photo_id)}.jpg'
+                            await self.client.download_media(message=chat, file=file_full_path, thumb=-1)
                 elif isinstance(chat, Chat):
                     channel_full = await self.client(GetFullChatRequest(chat.id))
                     member_count = channel_full.chats[0].participants_count
@@ -235,13 +243,14 @@ class TelegramAPIs(object):
                     "title": chat.title,
                     "username": username,
                     # 'democracy': channel_full.chats[0].democracy,
-                    "megagroup": "channel" if megagroup else "group",
+                    "megagroup": "channel" if not megagroup else "group",
                     "member_count": member_count,
                     "channel_description": channel_description,
                     "is_public": 1 if username else 0,
                     "join_date": chat.date.strftime("%Y-%m-%d %H:%M:%S+%Z"),
                     "unread_count": dialog.unread_count,
-                    'group_type': group_type
+                    'group_type': group_type,
+                    'photo_path': photo_path
                 }
                 result_json["data"] = out
                 yield result_json
@@ -551,6 +560,8 @@ class TelegramAPIs(object):
         return result
 
     async def get_full_channel(self, chat_id):
+        avatar_path = os.path.join(app.static_folder, 'images/avatar')
+        os.makedirs(avatar_path, exist_ok=True)
         chat = await self.get_dialog(chat_id)
         if not chat:
             return {}
@@ -561,6 +572,13 @@ class TelegramAPIs(object):
         channel_description = channel_full.full_chat.about
         username = channel_full.chats[0].username
         megagroup = channel_full.chats[0].megagroup
+        photo = chat.photo
+        photo_path = ''
+        if photo:
+            file_full_path = f'{avatar_path}/{str(photo.photo_id)}.jpg'
+            if not os.path.exists(file_full_path):
+                photo_path = f'images/avatar/{str(photo.photo_id)}.jpg'
+                await self.client.download_media(message=chat, file=file_full_path, thumb=-1)
         out = {
             "id": chat.id,
             "title": chat.title,
@@ -570,6 +588,7 @@ class TelegramAPIs(object):
             "channel_description": channel_description,
             "is_public": 1 if username else 0,
             "join_date": chat.date.strftime("%Y-%m-%d %H:%M:%S+%Z"),
+            'photo_path': photo_path
         }
         return out
 
@@ -625,13 +644,13 @@ if __name__ == '__main__':
     #         result.append(group)
     #     print('group_list:', result)
 
-
     #
 
     async def join_group():
         group_name = 'daxionfank'
         result = await tg.join_conversation(group_name)
         print(result)
+
 
     #
 
@@ -647,6 +666,8 @@ if __name__ == '__main__':
         history = tg.scan_message(chat, **params)
         async for message in history:
             print(message)
+
+
     #
     #
 
@@ -666,9 +687,11 @@ if __name__ == '__main__':
 
         print(chat)
 
+
     async def get_person_dialog_list():
         async for res in tg.get_dialog_list():
             print(res)
+
 
     async def get_full_channel(chat_id):
         result = await tg.get_full_channel(chat_id)
@@ -676,4 +699,4 @@ if __name__ == '__main__':
 
 
     with tg.client:
-        tg.client.loop.run_until_complete(get_full_channel(1610505522))
+        tg.client.loop.run_until_complete(get_person_dialog_list())

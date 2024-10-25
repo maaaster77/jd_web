@@ -41,24 +41,23 @@ def join_group(group_name, origin='celery'):
             else:
                 channel_full = await tg.get_full_channel(chat_id)
                 logger.info(f'{group_name} group info:{channel_full}')
-                url = f'https://t.me/{group_name.replace("t.me/", "")}'
-                data = TelegramSpider().search_query(url)
-                if not data:
-                    return
-                photo_url = data['photo_url']
-                file_path = ''
-                if photo_url:
-                    # 下载图片
-                    file_path = TgService.download_photo(photo_url, chat_id)
                 update_info = {
                     'status': TgGroup.StatusType.JOIN_SUCCESS,
                     'chat_id': chat_id,
                     'desc': channel_full.get("channel_description", ''),
-                    'avatar_path': file_path,
+                    'avatar_path': channel_full.get('photo_path', ''),
                     'title': channel_full.get("title", ''),
-                    'group_type': TgGroup.GroupType.CHANNEL if channel_full.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
+                    'group_type': TgGroup.GroupType.CHANNEL if channel_full.get('megagroup',
+                                                                                '') == 'channel' else TgGroup.GroupType.GROUP,
                 }
-            TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
+            tg_group = TgGroup.query.filter(TgGroup.chat_id == chat_id).first()
+            if tg_group:
+                # 更新原来的群组信息
+                TgGroup.query.filter(TgGroup.chat_id == chat_id).update(update_info)
+                # 删除新增的群组
+                TgGroup.query.filter_by(name=group_name).delete()
+            else:
+                TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()
         except Exception as e:
             logger.info('join_group error: {}'.format(e))
@@ -247,28 +246,18 @@ def fetch_account_channel(account_id, origin='celery'):
         async for result in tg.get_dialog_list():
             data = result.get('data', {})
             print(data)
-            if data.get('group_type', '') != 'channel':
-                continue
             chat_id = str(data.get('id', ''))
             if not chat_id:
                 continue
-            group_name = data.get('username', '')
-            file_path = ''
-            if group_name:
-                url = f'https://t.me/{group_name}'
-                data = TelegramSpider().search_query(url)
-                if not data:
-                    return
-                photo_url = data['photo_url']
-                if photo_url:
-                    # 下载图片
-                    file_path = TgService.download_photo(photo_url, chat_id)
             tg_group = TgGroup.query.filter(TgGroup.chat_id == chat_id).first()
             if tg_group:
                 TgGroup.query.filter(TgGroup.chat_id == chat_id).update({
                     'account_id': tg_account.user_id,
                     'desc': data.get('channel_description', ''),
-                    'avatar_path': file_path
+                    'avatar_path': data.get('photo_path', ''),
+                    'chat_id': chat_id,
+                    'title': data.get("title", ''),
+                    'group_type': TgGroup.GroupType.CHANNEL if data.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
                 })
             else:
                 obj = TgGroup(
@@ -277,7 +266,9 @@ def fetch_account_channel(account_id, origin='celery'):
                     name=data.get('username', ''),
                     desc=data.get('channel_description', ''),
                     status=TgGroup.StatusType.JOIN_SUCCESS,
-                    avatar_path=file_path
+                    avatar_path=data.get('photo_path', ''),
+                    title=data.get("title", ''),
+                    group_type=TgGroup.GroupType.CHANNEL if data.get('megagroup', '') == 'channel' else TgGroup.GroupType.GROUP,
                 )
                 db.session.add(obj)
             db.session.commit()
