@@ -96,7 +96,7 @@ class ChemicalNineSpider:
             # for product_link in product_link_list:
             # yield from self.request_product_detail(product_link)
             for l in product_link_list:
-                yield from self.request_product_detail(l)
+                yield self.request_product_detail(l)
 
     def request_product_detail(self, link):
         html = self._send_request(link)
@@ -150,7 +150,7 @@ class ChemicalNineSpider:
 if __name__ == '__main__':
     app.ready(db_switch=False, web_switch=False, worker_switch=False)
     m_spider = ChemicalNineSpider()
-    for data in m_spider.search_query(page=1):
+    for data in m_spider.search_query(page=10):
         print(data)
     # link = m_spider.request_chemical_properties('https://www.chemicalbook.com/ProductChemicalPropertiesCB2126672.htm')
     # print('link:', link)
