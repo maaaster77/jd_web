@@ -43,5 +43,9 @@ def chemical_data_get_job():
         print(f'抓取:{platform}平台信息...')
         now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         logger.info(f'{now_time}, 抓取:{platform}平台信息...')
-        deal_spider_chemical(platform_id)
-        time.sleep(600)
+        try:
+            deal_spider_chemical(platform_id)
+        except Exception as e:
+            logger.error(e)
+            continue
+        time.sleep(60)
