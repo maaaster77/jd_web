@@ -1,7 +1,8 @@
 from jd import db
+from jd.models.base import BaseModel
 
 
-class TgGroupUserInfo(db.Model):
+class TgGroupUserInfo(BaseModel):
     __tablename__ = 'tg_group_user_info'
     id = db.Column(db.Integer, primary_key=True)
     chat_id = db.Column(db.String(128), nullable=False, default='', comment='群组id')

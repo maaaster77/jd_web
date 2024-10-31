@@ -169,6 +169,7 @@ log/
 /static/images
 /static/utils
 /static/document
+/static/send_file
 
 /config_local.py
 

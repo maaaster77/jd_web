@@ -1,7 +1,8 @@
 from jd import db
+from jd.models.base import BaseModel
 
 
-class TgGroup(db.Model):
+class TgGroup(BaseModel):
     __tablename__ = 'tg_group'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False, default='')
