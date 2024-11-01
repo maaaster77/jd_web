@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def send_file_job():
+def send_file_job(data_type=0):
     """
     tg_group tg_group_chat_history tg_group_use_info
 
@@ -26,8 +26,14 @@ def send_file_job():
     logger.info('ftp send file job start...')
     db.session.remove()
     file_list = []
-    # model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
-    model_list = [TgGroupUserInfo]
+    if data_type == 1:
+        model_list = [TgGroup]
+    elif data_type == 2:
+        model_list = [TgGroupChatHistory]
+    elif data_type == 3:
+        model_list = [TgGroupUserInfo]
+    else:
+        model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
     for model in model_list:
         add_list, update_list = deal_data(model)
         file_list.extend(add_list)
