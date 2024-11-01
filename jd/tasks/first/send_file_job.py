@@ -27,7 +27,7 @@ def send_file_job():
     db.session.remove()
     file_list = []
     # model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
-    model_list = [TgGroup, TgGroupChatHistory]
+    model_list = [TgGroupUserInfo]
     for model in model_list:
         add_list, update_list = deal_data(model)
         file_list.extend(add_list)
