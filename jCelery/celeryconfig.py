@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from celery.schedules import crontab
+
 broker_url = 'redis://127.0.0.1:6379/0'
 result_backend = 'redis://127.0.0.1:6379/1'
 # 三个队列
@@ -22,5 +24,9 @@ beat_schedule = {
     'tg_account_history_job': {
         'task': 'jd.tasks.first.tg_history_job.fetch_account_history_job',
         'schedule': timedelta(minutes=45),
+    },
+    'send_file_job': {
+        'task': 'jd.tasks.first.send_file_job.send_file_job',
+        'schedule': crontab(minute=0, hour=9),
     }
 }
