@@ -57,7 +57,7 @@ class FtpService:
             with open(file_path, 'rb') as file:
                 cls.ftp.storbinary(f'STOR {file_name}', file)
             logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
-            # print(f'ftp send success: {file_path}, file_name:{file_name}')
+            print(f'ftp send success: {file_path}, file_name:{file_name}')
         except Exception as e:
             logger.error(f'ftp send error: {file_path}, file_name:{file_name}, {e}')
 

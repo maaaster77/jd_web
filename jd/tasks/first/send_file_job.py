@@ -27,7 +27,7 @@ def send_file_job():
     db.session.remove()
     file_list = []
     # model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
-    model_list = [TgGroupChatHistory]
+    model_list = [TgGroup, TgGroupChatHistory]
     for model in model_list:
         add_list, update_list = deal_data(model)
         file_list.extend(add_list)
@@ -42,15 +42,16 @@ def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo]):
     file_list = []
     update_file_list = []
     now_time = datetime.datetime.now()
-    if now_time.strftime('%Y%m%d') == '20241101':
-        # 这一天不处理，等待2号开始处理
+    tmp_data_end_time = datetime.datetime(2024, 11, 1, 23, 59, 59)
+    if now_time.strftime('%Y%m%d') == (tmp_data_end_time + datetime.timedelta(days=1)).strftime('%Y%m%d'):
+        # 这一天不处理，下一天才开始处理
         return [], []
     yesterday = now_time - datetime.timedelta(days=1)
     start_time = yesterday.strftime('%Y-%m-%d 00:00:00')
     end_time = yesterday.strftime('%Y-%m-%d 23:59:59')
     while True:
         query = model.query.filter(model.id > last_id)
-        if now_time > datetime.datetime(2024, 10, 31, 23, 59, 59):
+        if now_time > tmp_data_end_time:
             # 1号开始，处理昨天的数据
             query = query.filter(model.created_at.between(start_time, end_time))
         rows = query.order_by(model.id.asc()).limit(1000).all()
