@@ -50,12 +50,13 @@ def join_group(group_name, origin='celery'):
                     'group_type': TgGroup.GroupType.CHANNEL if channel_full.get('megagroup',
                                                                                 '') == 'channel' else TgGroup.GroupType.GROUP,
                 }
-            tg_group = TgGroup.query.filter(TgGroup.chat_id == chat_id).first()
-            if tg_group:
+            tg_groups = TgGroup.query.filter(TgGroup.chat_id == chat_id).order_by(TgGroup.id.desc()).all()
+            if len(tg_groups) > 1:
                 # 更新原来的群组信息
                 TgGroup.query.filter(TgGroup.chat_id == chat_id).update(update_info)
-                # 删除新增的群组
-                TgGroup.query.filter_by(name=group_name).delete()
+                # 删除新的的群组
+                _id = tg_groups[-1].id
+                TgGroup.query.filter_by(TgGroup.id == _id).delete()
             else:
                 TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()
