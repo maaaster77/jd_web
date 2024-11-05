@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import time
 from ftplib import FTP
 
 from jd import app
@@ -24,6 +25,7 @@ class FtpService:
                 cls.ftp.login(user='rzx_syldry', passwd='rzx_syldry')
                 cls.ftp.encoding = 'utf-8'
                 logger.info('ftp connect success')
+                print('ftp connect success')
                 return True
         except Exception as e:
             logger.error(f'ftp connect error: {e}')
@@ -35,9 +37,10 @@ class FtpService:
             cls.ftp.quit()
             cls.ftp = None
             logger.info('ftp disconnect success')
+            print('ftp disconnect success')
 
     @classmethod
-    def _send_file(cls, file_path):
+    def _send_file(cls, file_path, max_retries=3):
         if not cls.ftp:
             return
         logger.info(f'ftp send file: {file_path}')
@@ -53,13 +56,20 @@ class FtpService:
         elif file_path.startswith(f'{app.static_folder}/images'):
             file_name = f'JD-TG-file-images-{file_ext}-{file_name}'
         file_name = file_name.encode('utf-8').decode('utf-8')
-        try:
-            with open(file_path, 'rb') as file:
-                cls.ftp.storbinary(f'STOR {file_name}', file)
-            logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
-            print(f'ftp send success: {file_path}, file_name:{file_name}')
-        except Exception as e:
-            logger.error(f'ftp send error: {file_path}, file_name:{file_name}, {e}')
+        for attempt in range(max_retries + 1):
+            try:
+                with open(file_path, 'rb') as file:
+                    cls.ftp.storbinary(f'STOR {file_name}', file)
+                logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
+                print(f'ftp send success: {file_path}, file_name:{file_name}')
+                break
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(
+                        f'ftp send failed, retrying ({attempt + 1}/{max_retries}): {file_path}, file_name:{file_name}, {e}')
+                else:
+                    logger.error(f'ftp send error: {file_path}, file_name:{file_name}, {e}')
+                time.sleep(0.5)
 
     @classmethod
     def _save_local_file(cls, data, file_path):
