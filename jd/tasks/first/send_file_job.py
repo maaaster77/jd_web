@@ -25,7 +25,6 @@ def send_file_job(data_type=0, is_all=0):
     """
     logger.info('ftp send file job start...')
     db.session.remove()
-    file_list = []
     if data_type == 1:
         model_list = [TgGroup]
     elif data_type == 2:
@@ -35,18 +34,13 @@ def send_file_job(data_type=0, is_all=0):
     else:
         model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
     for model in model_list:
-        add_list, update_list = deal_data(model, is_all)
-        file_list.extend(add_list)
-        file_list.extend(update_list)
-    FtpService.send_file_by_file_path(file_list)
+        deal_data(model, is_all)
     db.session.remove()
     logger.info('ftp send file job end...')
 
 
 def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo], is_all):
     last_id = 0
-    file_list = []
-    update_file_list = []
     now_time = datetime.datetime.now()
     yesterday = now_time - datetime.timedelta(days=1)
     start_time = yesterday.strftime('%Y-%m-%d 00:00:00')
@@ -64,18 +58,20 @@ def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo], is_all)
             break
         last_id = rows[-1].id
         # 生成文件
+        print(f'deal data:{rows[0].id}-{last_id}')
+        logger.info(f'deal data:{rows[0].id}-{last_id}')
         file_path, else_file_path_list = FtpService.save_local_file_from_db(rows, model.__tablename__, 'new', True)
-        if file_path:
-            file_list.append(file_path)
-        file_list.extend(else_file_path_list)
+        else_file_path_list.append(file_path)
+        FtpService.send_file_by_file_path(else_file_path_list)
+    if is_all:
+        return
     # 更新的数据
     rows = model.query.filter(model.created_at != model.updated_at,
                               model.updated_at.between(start_time, end_time)).order_by(model.updated_at.asc()).limit(
         1000).all()
     update_file_path, _ = FtpService.save_local_file_from_db(rows, model.__tablename__, 'update')
     if update_file_path:
-        update_file_list.append(update_file_path)
-    return file_list, update_file_list
+        FtpService.send_file_by_file_path([update_file_path])
 
 
 if __name__ == '__main__':
