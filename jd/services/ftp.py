@@ -61,6 +61,8 @@ class FtpService:
                 with open(file_path, 'rb') as file:
                     cls.ftp.storbinary(f'STOR {file_name}', file)
                 logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
+                if file_ext == 'json':
+                    os.remove(file_path)
                 print(f'ftp send success: {file_path}, file_name:{file_name}')
                 break
             except Exception as e:
