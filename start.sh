@@ -47,6 +47,8 @@ if [ "${celery}" = "true" ]; then
     kill -9 $pid
     echo "已关闭 Celery 进程: $pid"
   fi
+  echo "清理进行中job"
+  python -m scripts.job once.deal_job_queue
   echo "启动 Celery Worker"
   nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
   echo "启动 Celery Telegram Worker"
