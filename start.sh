@@ -4,30 +4,30 @@
 usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  --web             启动web"
-  echo "  --celery          启动Celery 服务"
-  echo "  --all              执行所有启动"
-  echo "  --help             显示帮助信息"
+  echo "  -w              启动web"
+  echo "  -c                启动Celery 服务"
+  echo "  -a              执行所有启动"
+  echo "  -h             显示帮助信息"
   exit 1
 }
 
 # 处理命令行参数
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --web)
+    -w)
       web=true
       shift
       ;;
-    --celery)
-      celery=true
+    -c)
+      celery_flag=true
       shift
       ;;
-    --all)
+    -a)
       web=true
-      celery=true
+      celery_flag=true
       shift
       ;;
-    --help)
+    -h)
       usage
       ;;
     *)
@@ -39,7 +39,7 @@ done
 
 
 # celery
-if [ "${celery}" = "true" ]; then
+if [ "${celery_flag}" = "true" ]; then
   pid=$(ps aux | grep celery | grep -v grep | awk '{print $2}')
   if [ -z "$pid" ]; then
     echo "Celery 未运行"
