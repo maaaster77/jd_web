@@ -116,6 +116,11 @@ def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, searc
         f_start_date = start_date + ' 00:00:00'
         f_end_date = end_date + ' 23:59:59'
         query = query.filter(TgGroupChatHistory.postal_time.between(f_start_date, f_end_date))
+    else:
+        now_time = datetime.datetime.now()
+        start_time = (now_time - datetime.timedelta(days=7)).strftime('%Y-%m-%d 00:00:00')
+        end_time = now_time.strftime('%Y-%m-%d 23:59:59')
+        query = query.filter(TgGroupChatHistory.postal_time.between(start_time, end_time))
     search_chat_id_list = [r for r in search_chat_id_list if r]
     if search_chat_id_list:
         query = query.filter(TgGroupChatHistory.chat_id.in_(search_chat_id_list))
