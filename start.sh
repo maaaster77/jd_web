@@ -36,7 +36,12 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+# 从 Git 拉取最新代码
+echo "更新代码"
+git pull
 
+echo "激活 venv"
+conda activate sdweb
 
 # celery
 if [ "${celery_flag}" = "true" ]; then
