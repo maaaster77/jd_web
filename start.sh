@@ -41,7 +41,6 @@ echo "更新代码"
 git pull
 
 echo "激活 venv"
-conda init
 source ~/.bashrc
 conda activate sdweb
 
