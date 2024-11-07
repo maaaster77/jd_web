@@ -54,11 +54,11 @@ if [ "${celery_flag}" = "true" ]; then
   echo "清理进行中job"
   conda run -n $CONDA_ENV_NAME python -m scripts.job once.deal_job_queue
   echo "启动 Celery Worker"
-  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
+  conda run -n $CONDA_ENV_NAME nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
   echo "启动 Celery Telegram Worker"
-  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
+  conda run -n $CONDA_ENV_NAME nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
   echo "启动 Celery Beat"
-  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery beat --loglevel=info > log/celery_beat.txt 2>&1 &
+  conda run -n $CONDA_ENV_NAME nohup celery -A scripts.worker:celery beat --loglevel=info > log/celery_beat.txt 2>&1 &
   #  echo "启动 Flower"
 #  nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True --db="flower_db" > log/celery_flower.txt 2>&1 &
 fi
@@ -74,7 +74,7 @@ if [ "${web}" = "true" ]; then
     echo "已关闭 Flask 进程: $pid"
   fi
   echo "启动 Flask"
-  nohup conda run -n $CONDA_ENV_NAME python -m web > log/flask_out.txt 2>&1 &
+  conda run -n $CONDA_ENV_NAME nohup python -m web > log/flask_out.txt 2>&1 &
   echo "Web: http://127.0.0.1:8981"
 fi
 
