@@ -40,9 +40,7 @@ done
 echo "更新代码"
 git pull
 
-echo "激活 venv"
-source ~/.bashrc
-conda activate sdweb
+CONDA_ENV_NAME="sdweb"
 
 # celery
 if [ "${celery_flag}" = "true" ]; then
@@ -54,13 +52,13 @@ if [ "${celery_flag}" = "true" ]; then
     echo "已关闭 Celery 进程: $pid"
   fi
   echo "清理进行中job"
-  python -m scripts.job once.deal_job_queue
+  conda run -n $CONDA_ENV_NAME python -m scripts.job once.deal_job_queue
   echo "启动 Celery Worker"
-  nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
+  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
   echo "启动 Celery Telegram Worker"
-  nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
+  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
   echo "启动 Celery Beat"
-  nohup celery -A scripts.worker:celery beat --loglevel=info > log/celery_beat.txt 2>&1 &
+  nohup conda run -n $CONDA_ENV_NAME celery -A scripts.worker:celery beat --loglevel=info > log/celery_beat.txt 2>&1 &
   #  echo "启动 Flower"
 #  nohup celery -A scripts.worker:celery flower --loglevel=info --persistent=True --db="flower_db" > log/celery_flower.txt 2>&1 &
 fi
@@ -76,7 +74,7 @@ if [ "${web}" = "true" ]; then
     echo "已关闭 Flask 进程: $pid"
   fi
   echo "启动 Flask"
-  nohup python -m web > log/flask_out.txt 2>&1 &
+  nohup conda run -n $CONDA_ENV_NAME python -m web > log/flask_out.txt 2>&1 &
   echo "Web: http://127.0.0.1:8981"
 fi
 
