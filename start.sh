@@ -42,7 +42,7 @@ git pull
 
 # 加载 conda 初始化脚本
 echo "加载 conda 初始化脚本"
-eval "$(conda conda_env.sh hook)"
+eval "$(conda shell.bash hook)"
 
 # 激活 conda 环境
 echo "激活环境: sdweb"
