@@ -46,7 +46,7 @@ def tg_chat_room_history():
     data = []
     for r in rows:
         group_name = chat_room.get(r.chat_id, '')
-        reply_to_msg_ids = [int(r) for r in r.reply_to_msg_ids.split(',') if int(r) > 0]
+        reply_to_msg_ids = [int(_id) for _id in r.reply_to_msg_ids.split(',') if _id.isdigit() and int(_id) > 0]
         print(f'chat_id:{r.chat_id}, paths:{r.document_paths}')
         data.append({
             'id': r.id,
