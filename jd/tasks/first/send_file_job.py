@@ -44,6 +44,7 @@ def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo], is_all,
     now_time = datetime.datetime.now()
     yesterday = now_time - datetime.timedelta(days=1)
     if yesterday.strftime('%Y-%m-%d') == '2024-11-10':
+        logger.info('2024-11-10 switch')
         return
     start_time = yesterday.strftime('%Y-%m-%d 00:00:00')
     end_time = yesterday.strftime('%Y-%m-%d 23:59:59')
