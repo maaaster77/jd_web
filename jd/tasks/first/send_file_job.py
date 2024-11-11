@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def send_file_job(data_type=0, is_all=0, start_id=0):
+def send_file_job(data_type=0, is_all=0, start_id=0, max_id=0):
     """
     tg_group tg_group_chat_history tg_group_use_info
 
@@ -34,18 +34,21 @@ def send_file_job(data_type=0, is_all=0, start_id=0):
     else:
         model_list = [TgGroup, TgGroupChatHistory, TgGroupUserInfo]
     for model in model_list:
-        deal_data(model, is_all, start_id)
+        deal_data(model, is_all, start_id, max_id)
     db.session.remove()
     logger.info('ftp send file job end...')
 
 
-def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo], is_all, start_id):
+def deal_data(model: Type[TgGroup, TgGroupChatHistory, TgGroupUserInfo], is_all, start_id, max_id):
     last_id = start_id
     now_time = datetime.datetime.now()
     yesterday = now_time - datetime.timedelta(days=1)
+    if yesterday.strftime('%Y-%m-%d') == '2024-11-11':
+        return
     start_time = yesterday.strftime('%Y-%m-%d 00:00:00')
     end_time = yesterday.strftime('%Y-%m-%d 23:59:59')
-    max_id = model.query.order_by(model.id.desc()).first().id
+    if not max_id:
+        max_id = model.query.order_by(model.id.desc()).first().id
     while True:
         query = model.query.filter(model.id > last_id)
         if not is_all:
