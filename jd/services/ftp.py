@@ -22,7 +22,7 @@ class FtpService:
             if cls.ftp is None:
                 cls.ftp = FTP()
                 cls.ftp.connect('120.224.39.232', 21)
-                cls.ftp.login(user='rzx_syldry', passwd='rzx_syldry')
+                cls.ftp.login(user='rzx_rzy', passwd='rzx_rzy')
                 cls.ftp.encoding = 'utf-8'
                 logger.info('ftp connect success')
                 print('ftp connect success')
