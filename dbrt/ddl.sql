@@ -255,3 +255,5 @@ CREATE TABLE `job_queue_log` (
   `status` int not null default 0 comment '0:未执行 1：进行中 2：已完成',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='job队列';
+
+alter table tg_group_chat_history add replies_info  text default null comment '评论内容';

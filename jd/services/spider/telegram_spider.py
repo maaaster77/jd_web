@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import time
 from random import randint
@@ -409,6 +410,11 @@ class TelegramAPIs(object):
                         }
                         if not os.path.exists(file_path):
                             await self.client.download_media(message=message, file=file_path)
+                if message.replies and isinstance(message.replies, dict):
+                    try:
+                        m['replies_info'] = json.dumps(message.replies, ensure_ascii=False)
+                    except Exception as e:
+                        print(e)
                 tick += 1
                 if tick >= waterline:
                     tick = 0
