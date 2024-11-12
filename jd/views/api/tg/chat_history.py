@@ -16,6 +16,7 @@ from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.views import get_or_exception
 from jd.views.api import api
 

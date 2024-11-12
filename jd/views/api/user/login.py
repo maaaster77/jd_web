@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token
 
 from jd import db
 from jd.models.user import User
+from jd.models.user_role import UserRole
 from jd.views import APIException
 from jd.views.api import api
 
@@ -26,4 +27,7 @@ def auth_login():
     #     identity={"user_id": user.id, "username": user.username})
     # return jsonify(access_token=access_token)
     session['current_user_id'] = user.id
-    return render_template("index.html")
+    user_roles = db.session.query(UserRole).filter(UserRole.user_id == user.id,
+                                                   UserRole.status == UserRole.StatusType.VALID).all()
+    role_ids = [role.role_id for role in user_roles]
+    return render_template("index.html", role_ids=role_ids)

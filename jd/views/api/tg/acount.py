@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 
 from jd import db, socketio, app
 from jd.models.tg_account import TgAccount
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.tasks.first.tg_app import tg_app_init
 
 from jd.tasks.telegram.tg import fetch_person_chat_history, login_tg_account, send_phone_code, fetch_account_channel
@@ -61,7 +62,7 @@ def tg_account_verify():
     return success()
 
 
-@api.route('/tg/account/index', methods=['GET'])
+@api.route('/tg/account/index', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def tg_account_index():
     account_list = TgAccount.query.order_by(TgAccount.id.desc()).all()
     status_map = {

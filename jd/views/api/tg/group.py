@@ -11,6 +11,7 @@ from jd import db
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_tag import TgGroupTag
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.services.spider.tg import TgService
 from jd.services.tag import TagService
 from jd.tasks.telegram.tg import join_group
@@ -18,7 +19,7 @@ from jd.views import get_or_exception, success
 from jd.views.api import api
 
 
-@api.route('/tg/group/list', methods=['GET'])
+@api.route('/tg/group/list', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def tg_group_list():
     args = request.args
     account_id = get_or_exception('account_id', args, 'str', '')
