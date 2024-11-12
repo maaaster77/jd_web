@@ -6,12 +6,13 @@ from flask import render_template, request, url_for, redirect, make_response
 from jd.models.chemical_platform import ChemicalPlatform
 from jd.models.chemical_platform_product_info import ChemicalPlatformProductInfo
 from jd.services.chemical import ChemicalPlatformService
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.tasks.first.spider_chemical import deal_spider_chemical
 from jd.views import get_or_exception, success
 from jd.views.api import api
 
 
-@api.route('/chemical/product/info/list', methods=['GET'])
+@api.route('/chemical/product/info/list', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def chemical_product_info_list():
     """
     获取产品列表

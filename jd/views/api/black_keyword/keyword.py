@@ -12,6 +12,7 @@ from jd.models.keyword_search_parse_result_tag import KeywordSearchParseResultTa
 from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.models.result_tag import ResultTag
 from jd.models.tg_group import TgGroup
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import deal_spider_search
 from jd.tasks.telegram.tg import fetch_group_recent_user_info
@@ -19,7 +20,7 @@ from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
 
-@api.route('/black_keyword/list', methods=['GET'])
+@api.route('/black_keyword/list', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def black_keyword_list():
     """
     黑词列表
@@ -81,7 +82,7 @@ def black_keyword_delete():
     return redirect(url_for('api.black_keyword_list'))
 
 
-@api.route('/black_keyword/search', methods=['POST'])
+@api.route('/black_keyword/search', methods=['POST'], roles=[ROLE_SUPER_ADMIN])
 def black_keyword_search():
     args = request.json
     search_type = get_or_exception('search_type', args, 'int', default=1)
@@ -107,7 +108,7 @@ def black_keyword_search():
     return success({'msg': '搜索中，请稍后！'})
 
 
-@api.route('/black_keyword/result', methods=['GET'])
+@api.route('/black_keyword/result', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def black_keyword_search_result():
     tags = ResultTag.query.filter_by(status=ResultTag.StatusType.VALID).all()
     tag_list = [{
@@ -249,7 +250,7 @@ def black_keyword_search_result_add():
     return success()
 
 
-@api.route('/black_keyword/queue/list')
+@api.route('/black_keyword/queue/list', roles=[ROLE_SUPER_ADMIN])
 def black_keyword_search_queue_list():
     queues = KeywordSearchQueue.query.filter().order_by(KeywordSearchQueue.id.desc()).limit(100).all()
     batch_id_list = list({row.batch_id for row in queues})

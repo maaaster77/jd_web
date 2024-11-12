@@ -10,12 +10,13 @@ from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.models.tg_group_user_tag import TgGroupUserTag
+from jd.services.role_service.role import ROLE_SUPER_ADMIN
 from jd.services.tag import TagService
 from jd.views import get_or_exception, success
 from jd.views.api import api
 
 
-@api.route('/tg/group_user/list', methods=['GET'])
+@api.route('/tg/group_user/list', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
 def tg_group_user_list():
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
