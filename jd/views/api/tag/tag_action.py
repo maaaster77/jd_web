@@ -9,7 +9,7 @@ from jd.views.api import api
 
 @api.route('/tag/list', methods=['GET'])
 def tag_list():
-    tags = ResultTag.query.order_by(ResultTag.updated_at.desc()).all()
+    tags = ResultTag.query.filter(ResultTag.status == ResultTag.StatusType.VALID).order_by(ResultTag.updated_at.desc()).all()
     data = [{
         'id': row.id,
         'name': row.title,

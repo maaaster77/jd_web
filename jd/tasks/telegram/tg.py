@@ -236,6 +236,7 @@ def fetch_person_chat_history(account_id, origin='celery'):
                 photo_path=data.get("photo", {}).get('file_path', ''),
                 document_path=data.get("document", {}).get('file_path', ''),
                 document_ext=data.get("document", {}).get('ext', ''),
+                replies_info=data.get('replies_info', '')
             )
             db.session.add(obj)
         db.session.commit()

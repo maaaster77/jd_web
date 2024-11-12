@@ -12,6 +12,9 @@ class BaseModel(db.Model):
         for k, v in self.__dict__.items():
             if k.startswith('_'):
                 continue
+            if k == 'replies_info':
+                # TODO:过滤回复信息
+                continue
             if isinstance(v, datetime.datetime):
                 v = v.strftime("%Y-%m-%d %H:%M:%S")
             if isinstance(v, Decimal):
