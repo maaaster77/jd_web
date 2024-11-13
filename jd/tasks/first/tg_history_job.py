@@ -44,18 +44,17 @@ def fetch_account_history_job():
     if not flag:
         return
     accounts = TgAccount.query.filter_by(status=TgAccount.StatusType.JOIN_SUCCESS).all()
-    try:
-        for account in accounts:
+    for account in accounts:
+        try:
             fetch_person_chat_history(account.id)
             db.session.commit()
-    except Exception as e:
-        logger.info(e)
-    db.session.commit()
+        except Exception as e:
+            logger.info(e)
+            db.session.rollback()
     JobQueueLogService.finished(queue.id)
     db.session.commit()
     db.session.remove()
     logger.info('end...')
-
 
 
 if __name__ == '__main__':
