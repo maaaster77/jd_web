@@ -415,9 +415,9 @@ class TelegramAPIs(object):
                         if not os.path.exists(file_path):
                             await self.client.download_media(message=message, file=file_path)
                 m['replies_info'] = {}
-                if message.replies and isinstance(message.replies, dict):
+                if message.replies:
                     try:
-                        m['replies_info'] = json.dumps(message.replies, ensure_ascii=False)
+                        m['replies_info'] = message.replies.to_dict()
                     except Exception as e:
                         print(e)
                 tick += 1
