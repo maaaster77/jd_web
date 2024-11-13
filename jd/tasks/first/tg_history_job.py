@@ -23,9 +23,10 @@ def fetch_tg_history_job():
         return
     try:
         TgChatHistoryJob().main()
+        db.session.commit()
     except Exception as e:
         logger.info(e)
-    db.session.commit()
+        db.session.rollback()
     JobQueueLogService.finished(queue.id)
     db.session.commit()
     logger.info('end...')
