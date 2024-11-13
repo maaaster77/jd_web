@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import os
 import time
 from random import randint
@@ -15,6 +16,8 @@ from telethon.tl.types import ChatInviteAlready, ChatInvite, Channel, Chat, Mess
     ChannelForbidden, InputMessagesFilterPhotos, ChannelParticipantsRecent, User, DocumentAttributeFilename
 
 from jd import app
+
+logger = logging.getLogger(__name__)
 
 
 class TelegramSpider:
@@ -339,6 +342,7 @@ class TelegramAPIs(object):
         ):
 
             if isinstance(message, Message):
+                logger.info(f'message | chat_id:{chat.id}, info:{message.to_dict()}')
                 content = ""
                 try:
                     content = message.message
@@ -410,6 +414,7 @@ class TelegramAPIs(object):
                         }
                         if not os.path.exists(file_path):
                             await self.client.download_media(message=message, file=file_path)
+                m['replies_info'] = {}
                 if message.replies and isinstance(message.replies, dict):
                     try:
                         m['replies_info'] = json.dumps(message.replies, ensure_ascii=False)
