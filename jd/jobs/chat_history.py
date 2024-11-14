@@ -61,10 +61,10 @@ class TgChatHistoryJob:
                 message_id = str(data.get("message_id", 0))
                 if message_id in old_msg_info:
                     old_msg: TgGroupChatHistory = old_msg_info[message_id]
-                    new_photo_path = data.data.get("photo", {}).get('file_path', '')
+                    new_photo_path = data.get("photo", {}).get('file_path', '')
                     if new_photo_path and new_photo_path != old_msg.photo_path:
                         TgGroupChatHistory.query.filter(TgGroupChatHistory.id == old_msg.id).update(
-                            {'photo_path': data.data.get("photo", {}).get('file_path', '')}
+                            {'photo_path': new_photo_path}
                         )
                         db.session.commit()
                         continue
