@@ -386,7 +386,7 @@ class TelegramAPIs(object):
                 m["message"] = content
                 photo = message.photo
                 m['photo'] = {}
-                if photo and hasattr(photo, "photo_id"):
+                if photo and hasattr(photo, "id"):
                     file_name = f'{image_path}/{str(photo.id)}.jpg'
                     m['photo'] = {
                         'photo_id': photo.id,
