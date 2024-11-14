@@ -18,8 +18,9 @@ class FtpService:
 
     @classmethod
     def init_ftp(cls):
-        try:
-            if cls.ftp is None:
+        max_retries = 5
+        for i in range(max_retries):
+            try:
                 cls.ftp = FTP()
                 cls.ftp.connect('120.224.39.232', 21)
                 cls.ftp.login(user='rzx_rzy', passwd='rzx_rzy')
@@ -27,17 +28,21 @@ class FtpService:
                 logger.info('ftp connect success')
                 print('ftp connect success')
                 return True
-        except Exception as e:
-            logger.error(f'ftp connect error: {e}')
+            except Exception as e:
+                logger.info(f'{i}/{max_retries}, ftp connect error: {e}')
+                time.sleep(1)
         return False
 
     @classmethod
     def close_ftp(cls):
-        if cls.ftp is not None:
-            cls.ftp.quit()
-            cls.ftp = None
-            logger.info('ftp disconnect success')
-            print('ftp disconnect success')
+        try:
+            if cls.ftp is not None:
+                cls.ftp.quit()
+                cls.ftp = None
+                logger.info('ftp disconnect success')
+                print('ftp disconnect success')
+        except Exception as e:
+            logger.error(f'ftp disconnect error: {e}')
 
     @classmethod
     def _send_file(cls, file_path, max_retries=3):
@@ -60,9 +65,9 @@ class FtpService:
             try:
                 with open(file_path, 'rb') as file:
                     cls.ftp.storbinary(f'STOR {file_name}', file)
-                logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
                 if file_ext == 'json':
                     os.remove(file_path)
+                logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
                 print(f'ftp send success: {file_path}, file_name:{file_name}')
                 break
             except Exception as e:
