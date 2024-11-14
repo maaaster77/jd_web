@@ -21,7 +21,7 @@ class FtpService:
         max_retries = 5
         for i in range(max_retries):
             try:
-                cls.ftp = FTP()
+                cls.ftp = FTP(timeout=60)
                 cls.ftp.connect('120.224.39.232', 21)
                 cls.ftp.login(user='rzx_rzy', passwd='rzx_rzy')
                 cls.ftp.encoding = 'utf-8'
@@ -78,7 +78,7 @@ class FtpService:
                     cls.init_ftp()
                 else:
                     logger.error(f'ftp send error: {file_path}, file_name:{file_name}, {e}')
-                time.sleep(0.5)
+                time.sleep(1)
 
     @classmethod
     def _save_local_file(cls, data, file_path):
