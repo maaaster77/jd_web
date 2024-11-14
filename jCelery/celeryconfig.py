@@ -27,6 +27,6 @@ beat_schedule = {
     # },
     'send_file_job': {
         'task': 'jd.tasks.first.send_file_job.send_file_job',
-        'schedule': crontab(minute=0, hour=9),
+        'schedule': crontab(minute=0, hour='*'),
     }
 }
