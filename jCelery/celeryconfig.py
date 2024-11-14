@@ -25,8 +25,8 @@ beat_schedule = {
     #     'task': 'jd.tasks.first.tg_history_job.fetch_account_history_job',
     #     'schedule': timedelta(minutes=45),
     # },
-    'send_file_job': {
-        'task': 'jd.tasks.first.send_file_job.send_file_job',
-        'schedule': crontab(minute=0, hour='*'),
-    }
+    # 'send_file_job': {
+    #     'task': 'jd.tasks.first.send_file_job.send_file_job',
+    #     'schedule': crontab(minute=0, hour='*'),
+    # }
 }
