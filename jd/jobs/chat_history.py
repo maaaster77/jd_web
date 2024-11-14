@@ -55,12 +55,19 @@ class TgChatHistoryJob:
             message_id_list = [str(data.get("message_id", 0)) for data in history_list if data.get("message_id", 0)]
             msg = TgGroupChatHistory.query.filter(TgGroupChatHistory.message_id.in_(message_id_list),
                                                   TgGroupChatHistory.chat_id == str(chat_id)).all()
-            already_message_id_list = [data.message_id for data in msg]
+            old_msg_info = {d.message_id: d for d in msg}
             for data in history_list:
                 logger.info(f'chat history data:{data}')
                 message_id = str(data.get("message_id", 0))
-                if message_id in already_message_id_list:
-                    continue
+                if message_id in old_msg_info:
+                    old_msg: TgGroupChatHistory = old_msg_info[message_id]
+                    new_photo_path = data.data.get("photo", {}).get('file_path', '')
+                    if new_photo_path and new_photo_path != old_msg.photo_path:
+                        TgGroupChatHistory.query.filter(TgGroupChatHistory.id == old_msg.id).update(
+                            {'photo_path': data.data.get("photo", {}).get('file_path', '')}
+                        )
+                        db.session.commit()
+                        continue
                 user_id = str(data.get("user_id", 0))
                 nickname = data.get("nick_name", "")
 
