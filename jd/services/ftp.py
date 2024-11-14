@@ -69,6 +69,8 @@ class FtpService:
                 if attempt < max_retries:
                     logger.warning(
                         f'ftp send failed, retrying ({attempt + 1}/{max_retries}): {file_path}, file_name:{file_name}, {e}')
+                    cls.close_ftp()
+                    cls.init_ftp()
                 else:
                     logger.error(f'ftp send error: {file_path}, file_name:{file_name}, {e}')
                 time.sleep(0.5)
