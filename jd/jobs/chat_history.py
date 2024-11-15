@@ -67,7 +67,7 @@ class TgChatHistoryJob:
                             {'photo_path': new_photo_path}
                         )
                         db.session.commit()
-                        continue
+                    continue
                 user_id = str(data.get("user_id", 0))
                 nickname = data.get("nick_name", "")
 
