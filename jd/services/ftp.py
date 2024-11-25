@@ -52,9 +52,12 @@ class FtpService:
         file_name = file_path.split('/')[-1]
         file_ext = file_path.split('.')[-1]
         if file_path.startswith(f'{app.static_folder}/document'):
-            # 除光闸兼容的格式外，其他格式改成doc
-            if file_ext not in ['png', 'jpg', 'doc', 'docx', 'xls', 'xlsx', 'txt']:
-                file_name = file_name.replace(file_ext, 'doc')
+            # # 除光闸兼容的格式外，其他格式改成doc
+            # if file_ext not in ['png', 'jpg', 'doc', 'docx', 'xls', 'xlsx', 'txt']:
+            #     file_name = file_name.replace(file_ext, 'doc')
+            if file_ext not in ['png', 'jpg']:
+                logger.info(f'ftp send file: {file_path}, 暂时不发送该文件')
+                return
             file_name = f'JD-TG-file-documents-{file_ext}-{file_name}'
         elif file_path.startswith(f'{app.static_folder}/images/avatar'):
             file_name = f'JD-TG-file-avatar-{file_ext}-{file_name}'
@@ -68,7 +71,6 @@ class FtpService:
                 if file_ext == 'json':
                     os.remove(file_path)
                 logger.info(f'ftp send success: {file_path}, file_name:{file_name}')
-                print(f'ftp send success: {file_path}, file_name:{file_name}')
                 break
             except Exception as e:
                 if attempt < max_retries:
