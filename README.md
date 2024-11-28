@@ -51,7 +51,17 @@ pip install -r requirements.txt
 
 ### 一键启动
 ```shell
-bash start.sh
+bash start.sh -a
+```
+
+### 重启celery
+```shell
+bash start.sh -c
+```
+
+### 重启web
+```shell
+bash start.sh -w
 ```
 
 ### 一键关闭
