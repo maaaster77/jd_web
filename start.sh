@@ -42,7 +42,7 @@ git pull
 
 # 加载 conda 初始化脚本
 echo "加载 conda 初始化脚本"
-export PATH="/home/ubuntu/miniconda3"
+# export PATH="/home/ubuntu/miniconda3"
 eval "$(conda shell.bash hook)"
 
 # 激活 conda 环境
