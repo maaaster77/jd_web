@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 @celery.task
 def tg_app_init(phone, ip_test=False):
+    logger.info(f'tg_app_init | start | phone:{phone}')
     if ip_test:
         url = 'https://httpbin.org/ip'  # 请求当前使用的ip
     else:
@@ -40,18 +41,18 @@ def tg_app_init(phone, ip_test=False):
         try:
             driver = webdriver.Chrome(options=chrome_options)
         except Exception as e:
-            logger.error(e)
+            logger.info(f'tg_app_init | error | info:{e}')
             return
         for i in range(5):
             try:
                 driver.get(url)
                 page_source = driver.page_source
-                logger.info(f'url:{url}, page:{page_source}')
-                print(f'url:{url}, page:{page_source}')
+                logger.info(f'tg_app_init | get page | url:{url}, page:{page_source}')
                 if 'Authorization' in page_source:
                     break
             except Exception as e:
                 print(f'请求不通该url:{url}， times:{i + 1}')
+                logger.info(f'tg_app_init | get page retry | url:{url}, times:{i+1}')
             time.sleep(1)
             continue
         if i == 5 or ip_test:
@@ -69,8 +70,10 @@ def tg_app_init(phone, ip_test=False):
         for i in range(60):
             obj = TgAccount.query.filter_by(phone=phone).first()
             print(f'第{i + 1}次获取验证码...')
+            logger.info(f'tg_app_init | get code| times:{i + 1}')
             if obj.api_code:
                 code = obj.api_code
+                logger.info(f'tg_app_init | get code success| code:{code}')
                 break
             db.session.commit()
             time.sleep(1)
@@ -81,6 +84,7 @@ def tg_app_init(phone, ip_test=False):
         code_input = login_form.find_element(By.ID, "my_password")
         code_input.send_keys(code)
         time.sleep(0.5)
+        logger.info(f'tg_app_init | login success | phone:{phone}')
         support_submit_div = login_form.find_element(By.CLASS_NAME, 'support_submit')
         submit_button = support_submit_div.find_element(By.TAG_NAME, 'button')
         submit_button.click()
@@ -94,7 +98,7 @@ def tg_app_init(phone, ip_test=False):
             a.click()
         time.sleep(5)
         driver.save_screenshot('page.png')
-
+        logger.info(f'tg_app_init | parse api hash | phone:{phone}')
         form = driver.find_element(By.ID, "app_edit_form")
         # 分割文本到每一行
         text = form.text
@@ -110,6 +114,7 @@ def tg_app_init(phone, ip_test=False):
             TgAccount.api_hash: api_hash
         })
         db.session.commit()
+        logger.info(f'tg_app_init | init success | phone:{phone}')
 
 
 if __name__ == '__main__':
