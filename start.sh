@@ -61,7 +61,7 @@ if [ "${celery_flag}" = "true" ]; then
   echo "清理进行中job"
   python -m scripts.job once.deal_job_queue
   echo "启动 Celery Worker"
-  nohup celery -A scripts.worker:celery worker -Q jd.celery.first --loglevel=info > log/celery_out.txt 2>&1 &
+  nohup celery -A scripts.worker:celery worker -Q jd.celery.first -c 6 --loglevel=info > log/celery_out.txt 2>&1 &
   echo "启动 Celery Telegram Worker"
   nohup celery -A scripts.worker:celery worker -Q jd.celery.telegram -c 1 --loglevel=info > log/celery_telegram_out.txt 2>&1 &
   echo "启动 Celery Beat"
