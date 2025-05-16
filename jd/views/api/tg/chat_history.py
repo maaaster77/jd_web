@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def tg_chat_room_history():
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
-    page_size = get_or_exception('page_size', args, 'int', 100)
+    page_size = get_or_exception('page_size', args, 'int', 50)
     search_content = get_or_exception('search_content', args, 'str', '')
     start_date = get_or_exception('start_date', args, 'str', '')
     end_date = get_or_exception('end_date', args, 'str', '')
