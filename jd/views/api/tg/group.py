@@ -4,14 +4,14 @@ from io import BytesIO
 from urllib.parse import quote
 
 import pandas as pd
-from flask import render_template, request, redirect, url_for, make_response
+from flask import render_template, request, redirect, url_for, make_response, session
 from sqlalchemy import func
 
 from jd import db
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_tag import TgGroupTag
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.services.spider.tg import TgService
 from jd.services.tag import TagService
 from jd.tasks.telegram.tg import join_group
@@ -19,7 +19,7 @@ from jd.views import get_or_exception, success
 from jd.views.api import api
 
 
-@api.route('/tg/group/list', methods=['GET'], roles=[ROLE_SUPER_ADMIN])
+@api.route('/tg/group/list', methods=['GET'])
 def tg_group_list():
     args = request.args
     account_id = get_or_exception('account_id', args, 'str', '')
@@ -84,7 +84,7 @@ def tg_group_list():
         d['latest_postal_time'] = d['latest_postal_time'].strftime('%Y-%m-%d %H:%M:%S') if d[
             'latest_postal_time'] else ''
     return render_template('tg_group_manage.html', data=data, tag_list=tag_list, default_account_id=account_id,
-                           default_group_name=group_name, default_remark=remark)
+                           default_group_name=group_name, default_remark=remark,role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/tg/group/delete')
@@ -147,7 +147,7 @@ def tg_group_download():
     groups = query.order_by(TgGroup.id.desc()).all()
     tag_list = TagService.list()
     if not groups:
-        return render_template('tg_group_manage.html', data=[], tag_list=tag_list)
+        return render_template('tg_group_manage.html', data=[], tag_list=tag_list, role_ids=RoleService.user_roles(session['current_user_id']))
     group_id_list = [g.id for g in groups]
     parse_tag_list = TgGroupTag.query.filter(TgGroupTag.group_id.in_(group_id_list)).all()
     parse_tag_result = collections.defaultdict(list)

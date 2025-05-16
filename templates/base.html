@@ -51,6 +51,7 @@
     <div class="border-right sidebar">
         <div class="list-group list-group-flush">
             <a href="{{ url_for('index') }}" class="list-group-item list-group-item-action custom-link">退出</a>
+            {% if 1 in role_ids %}
             <a href="{{ url_for('api.user_manage') }}"
                class="list-group-item list-group-item-action custom-link">用户管理</a>
             <a href="{{ url_for('api.tag_list') }}"
@@ -63,14 +64,17 @@
                 class="list-group-item list-group-item-action custom-link">账户分析</a>
             <a href="{{ url_for('api.tg_chat_room_history') }}"
                class="list-group-item list-group-item-action custom-link">Tg聊天内容</a>
+            {% endif %}
             <a href="{{ url_for('api.tg_group_list') }}"
                class="list-group-item list-group-item-action custom-link">Tg群组管理</a>
+            {% if 1 in role_ids %}
             <a href="{{ url_for('api.tg_group_user_list') }}"
                class="list-group-item list-group-item-action custom-link">Tg用户信息</a>
             <a href="{{ url_for('api.tg_account_index') }}"
                class="list-group-item list-group-item-action custom-link">监听账户</a>
             <a href="{{ url_for('api.chemical_product_info_list') }}"
                class="list-group-item list-group-item-action custom-link">化工产品</a>
+            {% endif %}
         </div>
     </div>
     <!-- /#sidebar-wrapper -->

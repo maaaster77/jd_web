@@ -1,12 +1,12 @@
 from io import BytesIO
 
 import pandas as pd
-from flask import render_template, request, url_for, redirect, make_response
+from flask import render_template, request, url_for, redirect, make_response, session
 
 from jd.models.chemical_platform import ChemicalPlatform
 from jd.models.chemical_platform_product_info import ChemicalPlatformProductInfo
 from jd.services.chemical import ChemicalPlatformService
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.tasks.first.spider_chemical import deal_spider_chemical
 from jd.views import get_or_exception, success
 from jd.views.api import api
@@ -54,7 +54,8 @@ def chemical_product_info_list():
                            current_page=page,
                            page_size=page_size, default_search_platform_id=search_platform_id_list,
                            default_search_compound_name=search_compound_name,
-                           default_search_product_name=search_product_name, max=max,min=min)
+                           default_search_product_name=search_product_name, max=max,min=min,
+                           role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/chemical/product/info/search', methods=['POST'])

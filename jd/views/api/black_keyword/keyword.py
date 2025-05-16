@@ -2,7 +2,7 @@ import collections
 from io import BytesIO
 
 import pandas as pd
-from flask import jsonify, request, render_template, redirect, url_for, make_response
+from flask import jsonify, request, render_template, redirect, url_for, make_response, session
 
 from jd import db
 from jd.models.black_keyword import BlackKeyword
@@ -12,7 +12,7 @@ from jd.models.keyword_search_parse_result_tag import KeywordSearchParseResultTa
 from jd.models.keyword_search_queue import KeywordSearchQueue
 from jd.models.result_tag import ResultTag
 from jd.models.tg_group import TgGroup
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.services.spider.search import SpiderSearchService
 from jd.tasks.first.spider_search import deal_spider_search
 from jd.tasks.telegram.tg import fetch_group_recent_user_info
@@ -45,7 +45,8 @@ def black_keyword_list():
         'created_at': row.created_at.strftime('%Y-%m-%d %H:%M:%S'),
     } for row in rows]
 
-    return render_template('black_words.html', data=data, total_pages=total_pages, current_page=page)
+    return render_template('black_words.html', data=data, total_pages=total_pages, current_page=page,
+                           role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/black_keyword/add', methods=['POST'])
@@ -139,7 +140,7 @@ def black_keyword_search_result():
         if not parse_id_list:
             return render_template('search_result.html', data=[], total_pages=1, current_page=page,
                                    tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
-                                   default_tag_id_list=default_tag_id_list)
+                                   default_tag_id_list=default_tag_id_list, role_ids=RoleService.user_roles(session['current_user_id']))
 
     query = KeywordSearchParseResult.query.filter(
         KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)
@@ -176,7 +177,7 @@ def black_keyword_search_result():
 
     return render_template('search_result.html', data=data, total_pages=total_pages, current_page=page,
                            tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
-                           default_tag_id_list=default_tag_id_list)
+                           default_tag_id_list=default_tag_id_list,role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/black_keyword/result/tag/update', methods=['POST'])
@@ -269,7 +270,7 @@ def black_keyword_search_queue_list():
             'now_page': search_data.page if search_data else 0,
             'created_at': q.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         })
-    return render_template('search_queue.html', data=data, total_pages=1, current_page=1)
+    return render_template('search_queue.html', data=data, total_pages=1, current_page=1,role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/black_keyword/result/download', methods=['GET'])
@@ -300,7 +301,7 @@ def black_keyword_search_result_download():
         if not parse_id_list:
             return render_template('search_result.html', data=[], total_pages=1, current_page=1,
                                    tag_list=tag_list, search_keyword=search_keyword, search_tag=search_tag,
-                                   default_tag_id_list=default_tag_id_list)
+                                   default_tag_id_list=default_tag_id_list,role_ids=RoleService.user_roles(session['current_user_id']))
 
     query = KeywordSearchParseResult.query.filter(
         KeywordSearchParseResult.is_delete == KeywordSearchParseResult.DeleteType.NORMAL)

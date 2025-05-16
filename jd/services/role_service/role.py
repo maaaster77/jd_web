@@ -1,3 +1,6 @@
+from jd import db
+from jd.models.user_role import UserRole
+
 ROLE_SUPER_ADMIN = 'super_admin'
 ROLE_COMMON_USER = 'common_user'
 
@@ -9,4 +12,10 @@ ROLE_MAP = {
 
 
 class RoleService:
-    pass
+
+    @classmethod
+    def user_roles(cls, user_id):
+        user_roles = db.session.query(UserRole).filter(UserRole.user_id == user_id,
+                                                       UserRole.status == UserRole.StatusType.VALID).all()
+        role_ids = [role.role_id for role in user_roles]
+        return role_ids
