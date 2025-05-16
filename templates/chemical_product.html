@@ -216,7 +216,7 @@
                         {% else %}
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="{{ url_for('api.chemical_product_info_list', page=page, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name) }}">{{ page }}</a>
+                                   href="{{ url_for('api.chemical_product_info_list', page=page, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name, search_qq_number=default_search_qq_number, search_contact_number=default_search_contact_number) }}">{{ page }}</a>
                             </li>
                         {% endif %}
                     {% endfor %}
