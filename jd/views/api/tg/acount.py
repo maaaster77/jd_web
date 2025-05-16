@@ -1,13 +1,13 @@
 import time
 
-from flask import request, render_template, redirect, url_for
+from flask import request, render_template, redirect, url_for, session
 from flask_socketio import emit
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 from jd import db, socketio, app
 from jd.models.tg_account import TgAccount
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.tasks.first.tg_app import tg_app_init
 
 from jd.tasks.telegram.tg import fetch_person_chat_history, login_tg_account, send_phone_code, fetch_account_channel
@@ -79,7 +79,7 @@ def tg_account_index():
         'status_text': status_map.get(account.status),
         'status': account.status
     } for account in account_list]
-    return render_template('tg_account.html', data=data)
+    return render_template('tg_account.html', data=data, role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/tg/account/delete', methods=['GET'])

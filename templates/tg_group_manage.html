@@ -178,7 +178,7 @@
                             <td>{{ word.tag }}</td>
                             <td>{{ word.created_at }}</td>
                             <td>{{ word.remark }}</td>
-                            {% if word.latest_postal_time and word.three_days_ago %}
+                            {% if word.latest_postal_time and word.three_days_ago and word.group_type == 1 %}
                                 <td style="color: red">{{ word.latest_postal_time }}</td>
                             {% else %}
                                 <td>{{ word.latest_postal_time }}</td>

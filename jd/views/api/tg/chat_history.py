@@ -3,7 +3,7 @@ import logging
 import os
 from urllib.parse import quote
 
-from flask import render_template, request, make_response, send_file
+from flask import render_template, request, make_response, send_file, session
 import pandas as pd
 from io import BytesIO
 
@@ -16,7 +16,7 @@ from jd.models.tg_account import TgAccount
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.views import get_or_exception
 from jd.views.api import api
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def tg_chat_room_history():
     args = request.args
     page = get_or_exception('page', args, 'int', 1)
-    page_size = get_or_exception('page_size', args, 'int', 100)
+    page_size = get_or_exception('page_size', args, 'int', 50)
     search_content = get_or_exception('search_content', args, 'str', '')
     start_date = get_or_exception('start_date', args, 'str', '')
     end_date = get_or_exception('end_date', args, 'str', '')
@@ -87,7 +87,8 @@ def tg_chat_room_history():
                            default_user_id=search_user_id_list, default_search_content=search_content,
                            default_start_date=start_date,
                            default_search_account_id=search_account_id_list,
-                           default_end_date=end_date, tg_accounts=tg_accounts_list, max=max, min=min)
+                           default_end_date=end_date, tg_accounts=tg_accounts_list, max=max, min=min,
+                           role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 def fetch_tg_group_chat_history(start_date, end_date, search_chat_id_list, search_user_id_list, search_content,

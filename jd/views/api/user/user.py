@@ -1,10 +1,10 @@
-from flask import jsonify, request, render_template, redirect, url_for
+from flask import jsonify, request, render_template, redirect, url_for, session
 
 from jd import db
 from jd.models.role import Role
 from jd.models.user import User
 from jd.models.user_role import UserRole
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.views import get_or_exception, APIException, success
 from jd.views.api import api
 
@@ -54,7 +54,7 @@ def user_manage():
         'id': r.id,
         'name': r.name
     } for r in roles]
-    return render_template('user_manage.html', users=data, roles=roles)
+    return render_template('user_manage.html', users=data, roles=roles, role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/user/info')

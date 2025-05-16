@@ -1,7 +1,9 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, session
 
 from jd import db
+from jd.helpers.user import current_user_id
 from jd.models.result_tag import ResultTag
+from jd.services.role_service.role import RoleService
 from jd.services.tag import TagService
 from jd.views import get_or_exception
 from jd.views.api import api
@@ -16,7 +18,8 @@ def tag_list():
         'status': TagService.StatusMap[row.status],
         'created_at': row.created_at.strftime('%Y-%m-%d %H:%M:%S'),
     } for row in tags]
-    return render_template('tag_manage.html', data=data)
+
+    return render_template('tag_manage.html', data=data, role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/tag/delete')

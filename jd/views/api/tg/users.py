@@ -3,14 +3,15 @@ from io import BytesIO
 from urllib.parse import quote
 
 import pandas as pd
-from flask import render_template, request, make_response
+from flask import render_template, request, make_response, session
 
 from jd import db
+from jd.helpers.user import current_user_id
 from jd.models.tg_group import TgGroup
 from jd.models.tg_group_chat_history import TgGroupChatHistory
 from jd.models.tg_group_user_info import TgGroupUserInfo
 from jd.models.tg_group_user_tag import TgGroupUserTag
-from jd.services.role_service.role import ROLE_SUPER_ADMIN
+from jd.services.role_service.role import ROLE_SUPER_ADMIN, RoleService
 from jd.services.tag import TagService
 from jd.views import get_or_exception, success
 from jd.views.api import api
@@ -73,7 +74,9 @@ def tg_group_user_list():
     return render_template('tg_group_user.html', data=data, group_list=group_list, total_pages=total_pages,
                            current_page=page, page_size=page_size, default_search_group_id=search_group_id,
                            default_search_username=search_username, tag_list=tag_list,
-                           default_search_nickname=search_nickname, default_search_desc=search_desc, max=max, min=min, default_remark=remark)
+                           default_search_nickname=search_nickname, default_search_desc=search_desc,
+                           max=max, min=min, default_remark=remark,
+                           role_ids=RoleService.user_roles(session['current_user_id']))
 
 
 @api.route('/tg/group_user/download', methods=['GET'])
@@ -117,7 +120,8 @@ def tg_group_user_download():
     output.seek(0)
     response = make_response(output.getvalue())
     file_name = 'users.csv'
-    response.headers["Content-Disposition"] = f"attachment; filename={quote(file_name)}; filename*=utf-8''{quote(file_name)}"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename={quote(file_name)}; filename*=utf-8''{quote(file_name)}"
     response.headers["Content-type"] = "text/csv"
 
     return response

@@ -77,6 +77,22 @@
                                    value="{{ default_search_compound_name }}">
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="search_qq_number" class="me-2" style="width: 100px;">QQ号:</label>
+                            <input type="text" class="form-control" id="search_qq_number"
+                                   name="search_qq_number"
+                                   value="{{ default_search_qq_number }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group d-flex align-items-center">
+                            <label for="search_contact_number" class="me-2" style="width: 100px;">手机号:</label>
+                            <input type="text" class="form-control" id="search_contact_number"
+                                   name="search_contact_number"
+                                   value="{{ default_search_contact_number }}">
+                        </div>
+                    </div>
                     <div class="col-md-3 d-flex align-items-center">
                         <button type="submit" class="btn btn-sm  btn-primary">查询</button>
                         <a href="{{ url_for('api.chemical_product_info_list') }}" class="btn btn-sm btn-success"
@@ -170,7 +186,7 @@
                     {% if current_page > 1 %}
                         <li class="page-item">
                             <a class="page-link"
-                               href="{{ url_for('api.chemical_product_info_list', page=current_page-1, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name) }}"
+                               href="{{ url_for('api.chemical_product_info_list', page=current_page-1, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name, search_qq_number=default_search_qq_number, search_contact_number=default_search_contact_number) }}"
                                tabindex="-1" aria-disabled="true">上一页</a>
                         </li>
                     {% else %}
@@ -186,7 +202,7 @@
                     {% if current_page > 3 %}
                         <li class="page-item">
                             <a class="page-link"
-                               href="{{ url_for('api.chemical_product_info_list', page=1, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name) }}">1</a>
+                               href="{{ url_for('api.chemical_product_info_list', page=1, page_size=page_size, search_product_name=default_search_product_name, search_platform_id=default_search_platform_id, search_compound_name=default_search_compound_name, search_qq_number=default_search_qq_number, search_contact_number=default_search_contact_number) }}">1</a>
 
                         </li>
                         <li class="page-item disabled">
@@ -219,6 +235,8 @@
                         <li class="page-item">
                             <a class="page-link"
                                href="
+
+
                                        {{ url_for('api.chemical_product_info_list', page=current_page+1, page_size=page_size, search_product_name=search_product_name, search_platform_id=search_platform_id, search_compound_name=search_compound_name) }}">下一页</a>
                         </li>
                     {% else %}
