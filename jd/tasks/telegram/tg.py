@@ -56,7 +56,7 @@ def join_group(group_name, origin='celery'):
                 TgGroup.query.filter(TgGroup.chat_id == chat_id).update(update_info)
                 # 删除新的的群组
                 _id = tg_groups[-1].id
-                TgGroup.query.filter_by(TgGroup.id == _id).delete()
+                TgGroup.query.filter_by(id=_id).delete()
             else:
                 TgGroup.query.filter_by(name=group_name, status=TgGroup.StatusType.JOIN_ONGOING).update(update_info)
             db.session.commit()
