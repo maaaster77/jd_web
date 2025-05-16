@@ -76,7 +76,7 @@ def tg_group_list():
             no_chat_history_group.append(d)
             continue
         data.append(d)
-    data = sorted(data, key=lambda x: x['latest_postal_time'])
+    data = sorted(data, key=lambda x: [x['group_type'], x['latest_postal_time']])
     data.extend(no_chat_history_group)
     for d in data:
         if not d['latest_postal_time']:
