@@ -179,3 +179,5 @@ log.txt
 config.py
 Selenium-Chrome-HTTP-Private-Proxy.zip
 
+nohup.out
+celerybeat-schedule.bak

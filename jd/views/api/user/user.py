@@ -20,7 +20,12 @@ def create_user():
     role = db.session.query(Role).filter(Role.id == role_id, Role.status == Role.StatusType.VALID).first()
     if not role:
         raise APIException('角色不存在')
-    user1 = User(username=username, password='111111')
+
+    if role_id == 1:
+        passs = "1q2w3E2025SD"
+    else:
+        passsd = '111111'
+    user1 = User(username=username, password=passsd)
     db.session.add(user1)
     db.session.flush()
     db.session.add(UserRole(user_id=user1.id, role_id=role_id, status=Role.StatusType.VALID))
